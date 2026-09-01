@@ -88,38 +88,64 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Anticipos" subtitle="Al registrar se descuenta por pago en la nómina del empleado.">
       <template #action>
-        <button class="btn btn-brand" @click="nuevo" data-testid="add-anticipo-btn"><i class="bi bi-plus-lg"></i>Registrar anticipo</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-anticipo-btn">
+          <i class="bi bi-plus-lg"></i> Registrar anticipo
+        </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
     <DataTable v-else :headers="headers" :empty="!anticipos.length" empty-text="Sin anticipos">
       <tr v-for="a in anticipos" :key="a.id_anticipo">
-        <td>{{ a.folio }}</td>
-        <td>{{ a.empleado }}</td>
-        <td class="money">{{ money(a.monto) }}</td>
-        <td>{{ a.numero_pagos }}</td>
-        <td class="money">{{ money(a.monto_por_pago) }}</td>
-        <td class="money">{{ money(a.saldo_pendiente) }}</td>
-        <td><StatusBadge :estado="a.estado" /></td>
-        <td style="text-align:right">
-          <button class="btn btn-ghost btn-sm" @click="abonar(a)"><i class="bi bi-cash"></i> Abonar</button>
+        <td class="align-middle">{{ a.folio }}</td>
+        <td class="align-middle">{{ a.empleado }}</td>
+        <td class="align-middle text-end fw-semibold">{{ money(a.monto) }}</td>
+        <td class="align-middle">{{ a.numero_pagos }}</td>
+        <td class="align-middle text-end fw-semibold">{{ money(a.monto_por_pago) }}</td>
+        <td class="align-middle text-end fw-semibold text-danger">{{ money(a.saldo_pendiente) }}</td>
+        <td class="align-middle"><StatusBadge :estado="a.estado" /></td>
+        <td class="align-middle text-end">
+          <button class="btn btn-outline-primary btn-sm" @click="abonar(a)">
+            <i class="bi bi-cash"></i> Abonar
+          </button>
         </td>
       </tr>
     </DataTable>
 
     <ModalBase v-if="modal" title="Registrar anticipo" @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field"><label>Empleado *</label>
-          <select v-model="form.id_empleado" data-testid="anticipo-empleado"><option value="">—</option>
-            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option></select></div>
-        <div class="field"><label>Folio *</label><input v-model="form.folio" /></div>
-        <div class="field"><label>Monto *</label><input type="number" step="0.01" v-model="form.monto" data-testid="anticipo-monto" /><span class="hint">Máx. 50% del salario mensual.</span></div>
-        <div class="field"><label>N° de pagos *</label><input type="number" min="1" v-model="form.numero_pagos" /></div>
-        <div class="field full"><label>Motivo</label><input v-model="form.motivo" /></div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Empleado *</label>
+          <select class="form-select" v-model="form.id_empleado" data-testid="anticipo-empleado">
+            <option value="">—</option>
+            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Folio *</label>
+          <input type="text" class="form-control" v-model="form.folio" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Monto *</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.monto" data-testid="anticipo-monto" />
+          <div class="form-text">Máx. 50% del salario mensual.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">N° de pagos *</label>
+          <input type="number" min="1" class="form-control" v-model="form.numero_pagos" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Motivo</label>
+          <input type="text" class="form-control" v-model="form.motivo" />
+        </div>
       </div>
     </ModalBase>
 
