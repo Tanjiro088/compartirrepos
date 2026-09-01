@@ -88,44 +88,91 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Combos" subtitle="El ahorro se calcula: precio normal − precio combo.">
       <template #action>
-        <button class="btn btn-brand" @click="nuevo" data-testid="add-combo-btn"><i class="bi bi-plus-lg"></i>Nuevo combo</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-combo-btn">
+          <i class="bi bi-plus-lg"></i> Nuevo combo
+        </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
     <DataTable v-else :headers="headers" :empty="!combos.length" empty-text="Sin combos">
       <tr v-for="c in combos" :key="c.id_combo">
-        <td><strong>{{ c.nombre }}</strong><div class="sub">{{ c.descripcion }}</div></td>
-        <td class="money">{{ money(c.precio_normal) }}</td>
-        <td class="money">{{ money(c.precio_combo) }}</td>
-        <td class="money" style="color:var(--brand)">{{ money(c.ahorro) }}</td>
-        <td><StatusBadge :variant="c.activo ? 'b-green' : 'b-gray'">{{ c.activo ? 'Activo' : 'Inactivo' }}</StatusBadge></td>
-        <td style="text-align:right">
-          <button class="btn btn-ghost btn-sm btn-danger" @click="eliminar(c)"><i class="bi bi-trash"></i></button>
+        <td class="align-middle">
+          <strong class="d-block">{{ c.nombre }}</strong>
+          <small class="text-muted">{{ c.descripcion }}</small>
+        </td>
+        <td class="align-middle text-end">{{ money(c.precio_normal) }}</td>
+        <td class="align-middle text-end">{{ money(c.precio_combo) }}</td>
+        <td class="align-middle text-end fw-semibold text-success">{{ money(c.ahorro) }}</td>
+        <td class="align-middle">
+          <StatusBadge :variant="c.activo ? 'b-green' : 'b-gray'">{{ c.activo ? 'Activo' : 'Inactivo' }}</StatusBadge>
+        </td>
+        <td class="align-middle text-end">
+          <button class="btn btn-outline-danger btn-sm" @click="eliminar(c)">
+            <i class="bi bi-trash"></i>
+          </button>
         </td>
       </tr>
     </DataTable>
 
     <ModalBase v-if="modal" title="Nuevo combo" big @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field full"><label>Nombre *</label><input v-model="form.nombre" /></div>
-        <div class="field full"><label>Descripción</label><input v-model="form.descripcion" /></div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-semibold">Nombre *</label>
+          <input type="text" class="form-control" v-model="form.nombre" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Descripción</label>
+          <input type="text" class="form-control" v-model="form.descripcion" />
+        </div>
       </div>
-      <label style="margin-top:14px;display:block">Productos del combo</label>
-      <div v-for="(it, i) in comboProductos" :key="i" style="display:flex;gap:8px;margin-top:8px">
-        <select v-model="it.id_presentacion" style="flex:2"><option value="">Producto…</option>
-          <option v-for="p in cat.presentaciones" :key="p.id_presentacion" :value="p.id_presentacion">{{ p.nombre }} ({{ money(p.precio) }})</option></select>
-        <input type="number" step="0.001" v-model="it.cantidad" style="flex:1" placeholder="Cant." />
-        <button class="btn btn-ghost btn-danger" @click="rmItem(i)"><i class="bi bi-x-lg"></i></button>
+
+      <label class="form-label fw-semibold mt-4 d-block">Productos del combo</label>
+      <div v-for="(it, i) in comboProductos" :key="i" class="row g-2 align-items-center mb-2">
+        <div class="col-8">
+          <select class="form-select" v-model="it.id_presentacion">
+            <option value="">Producto…</option>
+            <option v-for="p in cat.presentaciones" :key="p.id_presentacion" :value="p.id_presentacion">
+              {{ p.nombre }} ({{ money(p.precio) }})
+            </option>
+          </select>
+        </div>
+        <div class="col-3">
+          <input type="number" step="0.001" class="form-control" v-model="it.cantidad" placeholder="Cant." />
+        </div>
+        <div class="col-1 text-end">
+          <button class="btn btn-outline-danger btn-sm w-100" @click="rmItem(i)">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
       </div>
-      <button class="btn btn-sm" style="margin-top:10px" @click="addItem"><i class="bi bi-plus"></i> Agregar producto</button>
-      <div class="form-grid" style="margin-top:14px">
-        <div class="field"><label>Precio normal (auto)</label><input :value="money(comboNormal)" disabled /></div>
-        <div class="field"><label>Precio combo *</label><input type="number" step="0.01" v-model="form.precio_combo" /></div>
-        <div class="field full"><span class="hint">Ahorro estimado: <strong>{{ money(comboNormal - (form.precio_combo || 0)) }}</strong></span></div>
+
+      <button class="btn btn-outline-secondary btn-sm mt-2 d-inline-flex align-items-center gap-1" @click="addItem">
+        <i class="bi bi-plus"></i> Agregar producto
+      </button>
+
+      <div class="row g-3 mt-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Precio normal (auto)</label>
+          <input type="text" class="form-control" :value="money(comboNormal)" disabled />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Precio combo *</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.precio_combo" />
+        </div>
+        <div class="col-12">
+          <div class="form-text">
+            Ahorro estimado: <strong class="text-success">{{ money(comboNormal - (form.precio_combo || 0)) }}</strong>
+          </div>
+        </div>
       </div>
     </ModalBase>
 
