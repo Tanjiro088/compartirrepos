@@ -90,40 +90,74 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Préstamos" subtitle="Al registrar un pago se descuenta de la deuda (saldo pendiente).">
       <template #action>
-        <button class="btn btn-brand" @click="nuevo" data-testid="add-prestamo-btn"><i class="bi bi-plus-lg"></i>Registrar préstamo</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-prestamo-btn">
+          <i class="bi bi-plus-lg"></i> Registrar préstamo
+        </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+    
     <DataTable v-else :headers="headers" :empty="!prestamos.length" empty-text="Sin préstamos">
       <tr v-for="p in prestamos" :key="p.id_prestamo">
-        <td>{{ p.folio }}</td>
-        <td>{{ p.empleado }}</td>
-        <td class="money">{{ money(p.monto_total) }}</td>
-        <td class="money">{{ money(p.monto_pagado) }}</td>
-        <td class="money">{{ money(p.saldo_pendiente) }}</td>
-        <td><StatusBadge :estado="p.estado" /></td>
-        <td style="text-align:right">
-          <button class="btn btn-sm btn-brand" :disabled="p.estado === 'pagado'" @click="pagar(p)"><i class="bi bi-cash-coin"></i> Registrar pago</button>
+        <td class="align-middle fw-semibold">{{ p.folio }}</td>
+        <td class="align-middle">{{ p.empleado }}</td>
+        <td class="align-middle">{{ money(p.monto_total) }}</td>
+        <td class="align-middle text-muted">{{ money(p.monto_pagado) }}</td>
+        <td class="align-middle fw-bold">{{ money(p.saldo_pendiente) }}</td>
+        <td class="align-middle"><StatusBadge :estado="p.estado" /></td>
+        <td class="align-middle text-end">
+          <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" :disabled="p.estado === 'pagado'" @click="pagar(p)">
+            <i class="bi bi-cash-coin"></i> Registrar pago
+          </button>
         </td>
       </tr>
     </DataTable>
 
     <ModalBase v-if="modal" title="Registrar préstamo" big @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field"><label>Empleado *</label>
-          <select v-model="form.id_empleado" data-testid="prestamo-empleado"><option value="">—</option>
-            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option></select></div>
-        <div class="field"><label>Folio *</label><input v-model="form.folio" /></div>
-        <div class="field"><label>Monto total *</label><input type="number" step="0.01" v-model="form.monto_total" /></div>
-        <div class="field"><label>Tasa interés (%)</label><input type="number" step="0.01" v-model="form.tasa_interes" /></div>
-        <div class="field"><label>Plazo (meses) *</label><input type="number" min="1" v-model="form.plazo_meses" /></div>
-        <div class="field"><label>Fecha inicio *</label><input type="date" v-model="form.fecha_inicio" /></div>
-        <div class="field"><label>Fecha vencimiento *</label><input type="date" v-model="form.fecha_vencimiento" /></div>
-        <div class="field full"><label>Motivo</label><input v-model="form.motivo" /></div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Empleado *</label>
+          <select class="form-select" v-model="form.id_empleado" data-testid="prestamo-empleado">
+            <option value="">—</option>
+            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Folio *</label>
+          <input type="text" class="form-control" v-model="form.folio" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Monto total *</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.monto_total" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tasa interés (%)</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.tasa_interes" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Plazo (meses) *</label>
+          <input type="number" min="1" class="form-control" v-model="form.plazo_meses" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha inicio *</label>
+          <input type="date" class="form-control" v-model="form.fecha_inicio" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha vencimiento *</label>
+          <input type="date" class="form-control" v-model="form.fecha_vencimiento" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Motivo</label>
+          <input type="text" class="form-control" v-model="form.motivo" />
+        </div>
       </div>
     </ModalBase>
 
