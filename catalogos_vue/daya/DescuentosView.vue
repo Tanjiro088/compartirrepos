@@ -64,43 +64,78 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Descuentos automáticos" subtitle="Recurrentes por porcentaje o monto fijo, aplicados a la nómina.">
       <template #action>
-        <button class="btn btn-brand" @click="nuevo" data-testid="add-descuento-btn"><i class="bi bi-plus-lg"></i>Nuevo descuento</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-descuento-btn">
+          <i class="bi bi-plus-lg"></i> Nuevo descuento
+        </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
     <DataTable v-else :headers="headers" :empty="!descuentos.length" empty-text="Sin descuentos">
       <tr v-for="d in descuentos" :key="d.id_descuento_automatico">
-        <td>{{ d.empleado }}</td>
-        <td>{{ d.concepto }}</td>
-        <td><StatusBadge variant="b-blue">{{ d.tipo }}</StatusBadge></td>
-        <td>{{ d.tipo === 'porcentaje' ? d.valor + '%' : money(d.valor) }}</td>
-        <td>{{ d.frecuencia }}</td>
-        <td><StatusBadge :variant="d.activo ? 'b-green' : 'b-gray'">{{ d.activo ? 'Activo' : 'Inactivo' }}</StatusBadge></td>
+        <td class="align-middle fw-semibold">{{ d.empleado }}</td>
+        <td class="align-middle">{{ d.concepto }}</td>
+        <td class="align-middle">
+          <StatusBadge variant="b-blue">{{ d.tipo }}</StatusBadge>
+        </td>
+        <td class="align-middle">{{ d.tipo === 'porcentaje' ? d.valor + '%' : money(d.valor) }}</td>
+        <td class="align-middle text-capitalize">{{ d.frecuencia }}</td>
+        <td class="align-middle">
+          <StatusBadge :variant="d.activo ? 'b-green' : 'b-gray'">{{ d.activo ? 'Activo' : 'Inactivo' }}</StatusBadge>
+        </td>
       </tr>
     </DataTable>
 
     <ModalBase v-if="modal" title="Nuevo descuento automático" @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field"><label>Empleado *</label>
-          <select v-model="form.id_empleado">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Empleado *</label>
+          <select class="form-select" v-model="form.id_empleado">
             <option value="">—</option>
             <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">
               {{ e.persona?.nombre ?? e.nombre }} {{ e.persona?.apellido_paterno ?? e.apellido_paterno ?? '' }} {{ e.persona?.apellido_materno ?? e.apellido_materno ?? '' }}
             </option>
           </select>
         </div>
-        <div class="field"><label>Concepto *</label><input v-model="form.concepto" /></div>
-        <div class="field"><label>Tipo</label>
-          <select v-model="form.tipo"><option value="monto_fijo">Monto fijo</option><option value="porcentaje">Porcentaje</option></select></div>
-        <div class="field"><label>Valor *</label><input type="number" step="0.01" v-model="form.valor" /></div>
-        <div class="field"><label>Frecuencia</label>
-          <select v-model="form.frecuencia"><option>mensual</option><option>quincenal</option><option>unico</option></select></div>
-        <div class="field"><label>Fecha inicio *</label><input type="date" v-model="form.fecha_inicio" /></div>
-        <div class="field"><label>Fecha fin</label><input type="date" v-model="form.fecha_fin" /></div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Concepto *</label>
+          <input type="text" class="form-control" v-model="form.concepto" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tipo</label>
+          <select class="form-select" v-model="form.tipo">
+            <option value="monto_fijo">Monto fijo</option>
+            <option value="porcentaje">Porcentaje</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Valor *</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.valor" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Frecuencia</label>
+          <select class="form-select text-capitalize" v-model="form.frecuencia">
+            <option value="mensual">Mensual</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="unico">Unico</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha inicio *</label>
+          <input type="date" class="form-control" v-model="form.fecha_inicio" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha fin</label>
+          <input type="date" class="form-control" v-model="form.fecha_fin" />
+        </div>
       </div>
     </ModalBase>
 
