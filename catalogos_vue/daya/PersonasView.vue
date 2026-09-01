@@ -175,16 +175,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid px-4 py-3">
     <PageHeader title="Personas" subtitle="Catálogo central de personas físicas y morales del sistema.">
       <template #action>
-        <button class="btn btn-brand" @click="nuevo" data-testid="add-persona-btn">
+        <button class="btn btn-primary d-flex align-items-center gap-2" @click="nuevo" data-testid="add-persona-btn">
           <i class="bi bi-plus-lg"></i>Nueva persona
         </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
     <template v-else>
       <TableToolbar
         v-model:search="q"
@@ -195,24 +199,24 @@ onMounted(() => {
       />
       <DataTable :headers="headers" :empty="!personasFiltradas.length" empty-text="Sin personas registradas">
         <tr v-for="p in personasFiltradas" :key="p.id_persona">
-          <td>{{ p.tipo_documento }}: {{ p.numero_documento }}</td>
-          <td>
-            <strong>{{ p.tipo_persona === 'fisica' ? `${p.nombre} ${p.apellido_paterno || ''} ${p.apellido_materno || ''}` : p.razon_social }}</strong>
+          <td class="align-middle">{{ p.tipo_documento }}: {{ p.numero_documento }}</td>
+          <td class="align-middle">
+            <div class="fw-semibold">{{ p.tipo_persona === 'fisica' ? `${p.nombre} ${p.apellido_paterno || ''} ${p.apellido_materno || ''}` : p.razon_social }}</div>
             <div v-if="p.nombre_comercial"><small class="text-muted">{{ p.nombre_comercial }}</small></div>
           </td>
-          <td><span class="badge bg-secondary text-capitalize">{{ p.tipo_persona }}</span></td>
-          <td>{{ p.telefono || '—' }}</td>
-          <td>{{ p.correo || '—' }}</td>
-          <td>
+          <td class="align-middle"><span class="badge bg-secondary text-capitalize">{{ p.tipo_persona }}</span></td>
+          <td class="align-middle">{{ p.telefono || '—' }}</td>
+          <td class="align-middle">{{ p.correo || '—' }}</td>
+          <td class="align-middle">
             <StatusBadge :variant="p.activo ? 'b-green' : 'b-gray'">
               {{ p.activo ? 'Activo' : 'Inactivo' }}
             </StatusBadge>
           </td>
-          <td style="text-align:right">
-            <button class="btn btn-ghost btn-sm" @click="editar(p)"><i class="bi bi-pencil"></i></button>
+          <td class="align-middle text-end">
+            <button class="btn btn-outline-secondary btn-sm me-1" @click="editar(p)"><i class="bi bi-pencil"></i></button>
             <button 
-              class="btn btn-ghost btn-sm" 
-              :class="p.activo ? 'btn-danger' : ''" 
+              class="btn btn-sm" 
+              :class="p.activo ? 'btn-outline-danger' : 'btn-outline-success'" 
               @click="eliminar(p)"
               :title="p.activo ? 'Desactivar' : 'Activar'"
             >
@@ -224,141 +228,141 @@ onMounted(() => {
     </template>
 
     <ModalBase v-if="modal" :title="modalTitle" big @close="modal = false" @save="guardar">
-      <div class="form-grid">
+      <div class="row g-3">
         <!-- Datos Generales -->
-        <div class="field">
-          <label>Tipo de Persona *</label>
-          <select v-model="form.tipo_persona" data-testid="persona-tipo">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tipo de Persona *</label>
+          <select class="form-select" v-model="form.tipo_persona" data-testid="persona-tipo">
             <option value="fisica">Física</option>
             <option value="moral">Moral</option>
           </select>
-          <span v-if="errors.tipo_persona" class="text-danger small">{{ errors.tipo_persona[0] }}</span>
+          <span v-if="errors.tipo_persona" class="text-danger small mt-1 d-block">{{ errors.tipo_persona[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Tipo de Documento *</label>
-          <select v-model="form.tipo_documento">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tipo de Documento *</label>
+          <select class="form-select" v-model="form.tipo_documento">
             <option value="DNI">DNI</option>
             <option value="RUC">RUC</option>
             <option value="Pasaporte">Pasaporte</option>
             <option value="CE">CE</option>
           </select>
-          <span v-if="errors.tipo_documento" class="text-danger small">{{ errors.tipo_documento[0] }}</span>
+          <span v-if="errors.tipo_documento" class="text-danger small mt-1 d-block">{{ errors.tipo_documento[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Número de Documento *</label>
-          <input v-model="form.numero_documento" required />
-          <span v-if="errors.numero_documento" class="text-danger small">{{ errors.numero_documento[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Número de Documento *</label>
+          <input class="form-control" v-model="form.numero_documento" required />
+          <span v-if="errors.numero_documento" class="text-danger small mt-1 d-block">{{ errors.numero_documento[0] }}</span>
         </div>
 
         <!-- Campos condicionales: Física vs Moral -->
         <template v-if="form.tipo_persona === 'fisica'">
-          <div class="field">
-            <label>Nombre(s) *</label>
-            <input v-model="form.nombre" required />
-            <span v-if="errors.nombre" class="text-danger small">{{ errors.nombre[0] }}</span>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nombre(s) *</label>
+            <input class="form-control" v-model="form.nombre" required />
+            <span v-if="errors.nombre" class="text-danger small mt-1 d-block">{{ errors.nombre[0] }}</span>
           </div>
-          <div class="field">
-            <label>Apellido Paterno</label>
-            <input v-model="form.apellido_paterno" />
-            <span v-if="errors.apellido_paterno" class="text-danger small">{{ errors.apellido_paterno[0] }}</span>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Apellido Paterno</label>
+            <input class="form-control" v-model="form.apellido_paterno" />
+            <span v-if="errors.apellido_paterno" class="text-danger small mt-1 d-block">{{ errors.apellido_paterno[0] }}</span>
           </div>
-          <div class="field">
-            <label>Apellido Materno</label>
-            <input v-model="form.apellido_materno" />
-            <span v-if="errors.apellido_materno" class="text-danger small">{{ errors.apellido_materno[0] }}</span>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Apellido Materno</label>
+            <input class="form-control" v-model="form.apellido_materno" />
+            <span v-if="errors.apellido_materno" class="text-danger small mt-1 d-block">{{ errors.apellido_materno[0] }}</span>
           </div>
         </template>
         <template v-else>
-          <div class="field full">
-            <label>Razón Social *</label>
-            <input v-model="form.razon_social" required />
-            <span v-if="errors.razon_social" class="text-danger small">{{ errors.razon_social[0] }}</span>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Razón Social *</label>
+            <input class="form-control" v-model="form.razon_social" required />
+            <span v-if="errors.razon_social" class="text-danger small mt-1 d-block">{{ errors.razon_social[0] }}</span>
           </div>
         </template>
 
-        <div class="field">
-          <label>Nombre Comercial</label>
-          <input v-model="form.nombre_comercial" />
-          <span v-if="errors.nombre_comercial" class="text-danger small">{{ errors.nombre_comercial[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nombre Comercial</label>
+          <input class="form-control" v-model="form.nombre_comercial" />
+          <span v-if="errors.nombre_comercial" class="text-danger small mt-1 d-block">{{ errors.nombre_comercial[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Teléfono</label>
-          <input v-model="form.telefono" />
-          <span v-if="errors.telefono" class="text-danger small">{{ errors.telefono[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Teléfono</label>
+          <input class="form-control" v-model="form.telefono" />
+          <span v-if="errors.telefono" class="text-danger small mt-1 d-block">{{ errors.telefono[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Correo Electrónico</label>
-          <input type="email" v-model="form.correo" />
-          <span v-if="errors.correo" class="text-danger small">{{ errors.correo[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Correo Electrónico</label>
+          <input type="email" class="form-control" v-model="form.correo" />
+          <span v-if="errors.correo" class="text-danger small mt-1 d-block">{{ errors.correo[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Fecha de Nacimiento</label>
-          <input type="date" v-model="form.fecha_nacimiento" />
-          <span v-if="errors.fecha_nacimiento" class="text-danger small">{{ errors.fecha_nacimiento[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha de Nacimiento</label>
+          <input type="date" class="form-control" v-model="form.fecha_nacimiento" />
+          <span v-if="errors.fecha_nacimiento" class="text-danger small mt-1 d-block">{{ errors.fecha_nacimiento[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Género</label>
-          <select v-model="form.genero">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Género</label>
+          <select class="form-select" v-model="form.genero">
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </select>
-          <span v-if="errors.genero" class="text-danger small">{{ errors.genero[0] }}</span>
+          <span v-if="errors.genero" class="text-danger small mt-1 d-block">{{ errors.genero[0] }}</span>
         </div>
 
         <!-- Dirección -->
-        <div class="field">
-          <label>Calle</label>
-          <input v-model="form.calle" />
-          <span v-if="errors.calle" class="text-danger small">{{ errors.calle[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Calle</label>
+          <input class="form-control" v-model="form.calle" />
+          <span v-if="errors.calle" class="text-danger small mt-1 d-block">{{ errors.calle[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Número Exterior</label>
-          <input v-model="form.numero_exterior" />
-          <span v-if="errors.numero_exterior" class="text-danger small">{{ errors.numero_exterior[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Número Exterior</label>
+          <input class="form-control" v-model="form.numero_exterior" />
+          <span v-if="errors.numero_exterior" class="text-danger small mt-1 d-block">{{ errors.numero_exterior[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Número Interior</label>
-          <input v-model="form.numero_interior" />
-          <span v-if="errors.numero_interior" class="text-danger small">{{ errors.numero_interior[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Número Interior</label>
+          <input class="form-control" v-model="form.numero_interior" />
+          <span v-if="errors.numero_interior" class="text-danger small mt-1 d-block">{{ errors.numero_interior[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Colonia</label>
-          <input v-model="form.colonia" />
-          <span v-if="errors.colonia" class="text-danger small">{{ errors.colonia[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Colonia</label>
+          <input class="form-control" v-model="form.colonia" />
+          <span v-if="errors.colonia" class="text-danger small mt-1 d-block">{{ errors.colonia[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Código Postal</label>
-          <input v-model="form.codigo_postal" />
-          <span v-if="errors.codigo_postal" class="text-danger small">{{ errors.codigo_postal[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Código Postal</label>
+          <input class="form-control" v-model="form.codigo_postal" />
+          <span v-if="errors.codigo_postal" class="text-danger small mt-1 d-block">{{ errors.codigo_postal[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Ciudad</label>
-          <input v-model="form.ciudad" />
-          <span v-if="errors.ciudad" class="text-danger small">{{ errors.ciudad[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Ciudad</label>
+          <input class="form-control" v-model="form.ciudad" />
+          <span v-if="errors.ciudad" class="text-danger small mt-1 d-block">{{ errors.ciudad[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>Estado / Provincia</label>
-          <input v-model="form.estado" />
-          <span v-if="errors.estado" class="text-danger small">{{ errors.estado[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Estado / Provincia</label>
+          <input class="form-control" v-model="form.estado" />
+          <span v-if="errors.estado" class="text-danger small mt-1 d-block">{{ errors.estado[0] }}</span>
         </div>
 
-        <div class="field">
-          <label>País</label>
-          <input v-model="form.pais" />
-          <span v-if="errors.pais" class="text-danger small">{{ errors.pais[0] }}</span>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">País</label>
+          <input class="form-control" v-model="form.pais" />
+          <span v-if="errors.pais" class="text-danger small mt-1 d-block">{{ errors.pais[0] }}</span>
         </div>
       </div>
     </ModalBase>
@@ -366,6 +370,7 @@ onMounted(() => {
     <ToastNotification ref="toast" />
   </section>
 </template>
+
 
 <style scoped>
 .text-danger {
