@@ -26,5 +26,15 @@ defineExpose({ notify, apiErr });
 </script>
 
 <template>
-  <div v-if="show" class="toast" :class="{ err }">{{ msg }}</div>
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    <div v-if="show" class="toast show align-items-center text-white border-0" :class="err ? 'bg-danger' : 'bg-success'" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i :class="['bi', err ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill', 'fs-5']"></i>
+          <span>{{ msg }}</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="show = false" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
 </template>
