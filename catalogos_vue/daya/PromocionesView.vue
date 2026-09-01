@@ -119,53 +119,138 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Promociones" subtitle="Descuentos, 2x1, volumen, precio especial · por productos, sucursales y días.">
       <template #action>
-        <button class="btn btn-brand" @click="nueva" data-testid="add-promo-btn"><i class="bi bi-plus-lg"></i>Nueva promoción</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nueva" data-testid="add-promo-btn">
+          <i class="bi bi-plus-lg"></i> Nueva promoción
+        </button>
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+    
     <DataTable v-else :headers="headers" :empty="!promociones.length" empty-text="Sin promociones">
       <tr v-for="p in promociones" :key="p.id_promocion">
-        <td><strong>{{ p.nombre }}</strong><div class="sub">{{ p.descripcion }}</div></td>
-        <td class="sub">{{ (p.fecha_inicio || '').substring(0, 10) }} → {{ (p.fecha_fin || '').substring(0, 10) }}</td>
-        <td>{{ p.prioridad }}</td>
-        <td>{{ p.acumulable ? 'Sí' : 'No' }}</td>
-        <td><StatusBadge :variant="p.activa ? 'b-green' : 'b-gray'">{{ p.activa ? 'Activa' : 'Inactiva' }}</StatusBadge></td>
-        <td style="text-align:right">
-          <button class="btn btn-ghost btn-sm" @click="editar(p)" data-testid="edit-promo-btn"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-ghost btn-sm btn-danger" @click="eliminar(p)"><i class="bi bi-trash"></i></button>
+        <td class="align-middle">
+          <div class="fw-semibold">{{ p.nombre }}</div>
+          <div class="text-muted small">{{ p.descripcion }}</div>
+        </td>
+        <td class="align-middle text-muted small">
+          {{ (p.fecha_inicio || '').substring(0, 10) }} → {{ (p.fecha_fin || '').substring(0, 10) }}
+        </td>
+        <td class="align-middle">{{ p.prioridad }}</td>
+        <td class="align-middle">{{ p.acumulable ? 'Sí' : 'No' }}</td>
+        <td class="align-middle">
+          <StatusBadge :variant="p.activa ? 'b-green' : 'b-gray'">{{ p.activa ? 'Activa' : 'Inactiva' }}</StatusBadge>
+        </td>
+        <td class="align-middle text-end">
+          <button class="btn btn-outline-secondary btn-sm me-1" @click="editar(p)" data-testid="edit-promo-btn">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-outline-danger btn-sm" @click="eliminar(p)">
+            <i class="bi bi-trash"></i>
+          </button>
         </td>
       </tr>
     </DataTable>
 
     <ModalBase v-if="modal" :title="modalTitle" big @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field full"><label>Nombre *</label><input v-model="form.nombre" /></div>
-        <div class="field full"><label>Descripción</label><input v-model="form.descripcion" /></div>
-        <div class="field"><label>Inicio *</label><input type="datetime-local" v-model="form.fecha_inicio" /></div>
-        <div class="field"><label>Fin *</label><input type="datetime-local" v-model="form.fecha_fin" /></div>
-        <div class="field"><label>Tipo *</label>
-          <select v-model="form.id_tipo_promocion"><option value="">—</option>
-            <option v-for="t in cat.tipos_promocion" :key="t.id_tipo_promocion" :value="t.id_tipo_promocion">{{ t.nombre }}</option></select></div>
-        <div class="field"><label>Prioridad</label><input type="number" v-model="form.prioridad" /></div>
-        <div class="field"><label>% Descuento</label><input type="number" step="0.01" v-model="form.porcentaje_descuento" /></div>
-        <div class="field"><label>Importe descuento</label><input type="number" step="0.01" v-model="form.importe_descuento" /></div>
-        <div class="field"><label>Precio especial</label><input type="number" step="0.01" v-model="form.precio_especial" /></div>
-        <div class="field"><label>Cant. mínima</label><input type="number" step="0.01" v-model="form.cantidad_minima" /></div>
-        <div class="field"><label>Acumulable</label><select v-model="form.acumulable"><option :value="false">No</option><option :value="true">Sí</option></select></div>
-        <div class="field"><label>Activa</label><select v-model="form.activa"><option :value="true">Sí</option><option :value="false">No</option></select></div>
-        <div class="field full"><label>Días de aplicación</label>
-          <div class="chips"><span v-for="d in diasSemana" :key="d" class="chip" :class="{ on: promoDias.includes(d) }" @click="toggleArr(promoDias, d)">{{ d }}</span></div></div>
-        <div class="field full"><label>Productos incluidos</label>
-          <div class="chips"><span v-for="p in cat.presentaciones" :key="p.id_presentacion" class="chip" :class="{ on: promoPres.includes(p.id_presentacion) }" @click="toggleArr(promoPres, p.id_presentacion)">{{ p.nombre }}</span></div></div>
-        <div class="field full"><label>Sucursales</label>
-          <div class="chips"><span v-for="s in cat.sucursales" :key="s.id_sucursal" class="chip" :class="{ on: promoSuc.includes(s.id_sucursal) }" @click="toggleArr(promoSuc, s.id_sucursal)">{{ s.nombre }}</span></div></div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-semibold">Nombre *</label>
+          <input type="text" class="form-control" v-model="form.nombre" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Descripción</label>
+          <input type="text" class="form-control" v-model="form.descripcion" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Inicio *</label>
+          <input type="datetime-local" class="form-control" v-model="form.fecha_inicio" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Fin *</label>
+          <input type="datetime-local" class="form-control" v-model="form.fecha_fin" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tipo *</label>
+          <select class="form-select" v-model="form.id_tipo_promocion">
+            <option value="">—</option>
+            <option v-for="t in cat.tipos_promocion" :key="t.id_tipo_promocion" :value="t.id_tipo_promocion">{{ t.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Prioridad</label>
+          <input type="number" class="form-control" v-model="form.prioridad" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">% Descuento</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.porcentaje_descuento" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Importe descuento</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.importe_descuento" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Precio especial</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.precio_especial" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Cant. mínima</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.cantidad_minima" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Acumulable</label>
+          <select class="form-select" v-model="form.acumulable">
+            <option :value="false">No</option>
+            <option :value="true">Sí</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Activa</label>
+          <select class="form-select" v-model="form.activa">
+            <option :value="true">Sí</option>
+            <option :value="false">No</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold d-block">Días de aplicación</label>
+          <div class="d-flex flex-wrap gap-2">
+            <span v-for="d in diasSemana" :key="d" class="badge cursor-pointer px-3 py-2" :class="promoDias.includes(d) ? 'bg-primary' : 'bg-light text-dark border'" @click="toggleArr(promoDias, d)">
+              {{ d }}
+            </span>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold d-block">Productos incluidos</label>
+          <div class="d-flex flex-wrap gap-2">
+            <span v-for="p in cat.presentaciones" :key="p.id_presentacion" class="badge cursor-pointer px-3 py-2" :class="promoPres.includes(p.id_presentacion) ? 'bg-primary' : 'bg-light text-dark border'" @click="toggleArr(promoPres, p.id_presentacion)">
+              {{ p.nombre }}
+            </span>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold d-block">Sucursales</label>
+          <div class="d-flex flex-wrap gap-2">
+            <span v-for="s in cat.sucursales" :key="s.id_sucursal" class="badge cursor-pointer px-3 py-2" :class="promoSuc.includes(s.id_sucursal) ? 'bg-primary' : 'bg-light text-dark border'" @click="toggleArr(promoSuc, s.id_sucursal)">
+              {{ s.nombre }}
+            </span>
+          </div>
+        </div>
       </div>
     </ModalBase>
 
     <ToastNotification ref="toast" />
   </section>
 </template>
+
+<style scoped>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>
