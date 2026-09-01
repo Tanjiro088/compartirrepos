@@ -190,48 +190,95 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Nómina" subtitle="Una nómina por empleado. Anticipos y préstamos se reflejan automáticamente." />
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
     <template v-else>
       <TableToolbar
         v-model:search="q"
         v-model:estado="estadoFilter"
-        placeholder="Buscar por empleado, N° o periodo…"
+        placeholder="Buscar por empleado, N° or periodo…"
         :estados="estadosNomina"
         id-prefix="nominas"
       />
       <DataTable :headers="headers" :empty="!nominasFiltradas.length" empty-text="Sin nóminas">
         <tr v-for="n in nominasFiltradas" :key="n.id_nomina">
-          <td><strong>{{ n.empleado }}</strong><div class="sub">{{ n.numero_empleado }}</div></td>
-          <td>{{ n.periodo }}</td>
-          <td class="money">{{ money(n.total_ingresos) }}</td>
-          <td class="money" style="color:var(--danger)">{{ money(n.total_descuentos) }}</td>
-          <td class="money">{{ money(n.total_neto) }}</td>
-          <td><StatusBadge :estado="n.estado" /></td>
-          <td style="text-align:right">
-            <button class="btn btn-ghost btn-sm" @click="verNomina(n)"><i class="bi bi-pencil-square"></i> Ajustar</button>
-            <button v-if="n.estado === 'pagada'" class="btn btn-ghost btn-sm" @click="reciboNomina(n)" data-testid="recibo-btn"><i class="bi bi-file-earmark-pdf"></i> Recibo</button>
-            <button class="btn btn-sm btn-brand" :disabled="n.estado === 'pagada'" @click="pagarNomina(n)"><i class="bi bi-check2"></i> Pagar</button>
+          <td class="align-middle">
+            <div class="fw-semibold">{{ n.empleado }}</div>
+            <div class="text-muted small">{{ n.numero_empleado }}</div>
+          </td>
+          <td class="align-middle">{{ n.periodo }}</td>
+          <td class="align-middle fw-semibold">{{ money(n.total_ingresos) }}</td>
+          <td class="align-middle text-danger fw-semibold">{{ money(n.total_descuentos) }}</td>
+          <td class="align-middle fw-bold">{{ money(n.total_neto) }}</td>
+          <td class="align-middle"><StatusBadge :estado="n.estado" /></td>
+          <td class="align-middle text-end">
+            <button class="btn btn-outline-secondary btn-sm me-1 d-inline-flex align-items-center gap-1" @click="verNomina(n)">
+              <i class="bi bi-pencil-square"></i> Ajustar
+            </button>
+            <button v-if="n.estado === 'pagada'" class="btn btn-outline-secondary btn-sm me-1 d-inline-flex align-items-center gap-1" @click="reciboNomina(n)" data-testid="recibo-btn">
+              <i class="bi bi-file-earmark-pdf"></i> Recibo
+            </button>
+            <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" :disabled="n.estado === 'pagada'" @click="pagarNomina(n)">
+              <i class="bi bi-check2"></i> Pagar
+            </button>
           </td>
         </tr>
       </DataTable>
     </template>
 
     <ModalBase v-if="modal" :title="modalTitle" big @close="modal = false" @save="guardar">
-      <div class="form-grid">
-        <div class="field"><label>Periodo</label><input v-model="form.periodo" /></div>
-        <div class="field"><label>Días laborados</label><input type="number" v-model="form.dias_laborados" /></div>
-        <div class="field"><label>Salario base</label><input :value="money(form.salario_base)" disabled /></div>
-        <div class="field"><label>Bonificaciones</label><input type="number" step="0.01" v-model="form.bonificaciones" /></div>
-        <div class="field"><label>Comisiones</label><input type="number" step="0.01" v-model="form.comisiones" /></div>
-        <div class="field"><label>Horas extras</label><input type="number" step="0.01" v-model="form.horas_extras" /></div>
-        <div class="field"><label>Otros ingresos</label><input type="number" step="0.01" v-model="form.otros_ingresos" /></div>
-        <div class="field"><label>Descuentos legales (ISR)</label><input type="number" step="0.01" v-model="form.descuentos_legales" /></div>
-        <div class="field"><label>Desc. préstamos (auto)</label><input :value="money(form.descuentos_prestamos)" disabled /></div>
-        <div class="field"><label>Desc. anticipos (auto)</label><input :value="money(form.descuentos_anticipos)" disabled /></div>
-        <div class="field full"><label>Observaciones</label><textarea v-model="form.observaciones" rows="2"></textarea></div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Periodo</label>
+          <input type="text" class="form-control" v-model="form.periodo" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Días laborados</label>
+          <input type="number" class="form-control" v-model="form.dias_laborados" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Salario base</label>
+          <input type="text" class="form-control" :value="money(form.salario_base)" disabled />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Bonificaciones</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.bonificaciones" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Comisiones</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.comisiones" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Horas extras</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.horas_extras" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Otros ingresos</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.otros_ingresos" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Descuentos legales (ISR)</label>
+          <input type="number" step="0.01" class="form-control" v-model="form.descuentos_legales" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Desc. préstamos (auto)</label>
+          <input type="text" class="form-control" :value="money(form.descuentos_prestamos)" disabled />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Desc. anticipos (auto)</label>
+          <input type="text" class="form-control" :value="money(form.descuentos_anticipos)" disabled />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Observaciones</label>
+          <textarea class="form-control" v-model="form.observaciones" rows="2"></textarea>
+        </div>
       </div>
     </ModalBase>
 
