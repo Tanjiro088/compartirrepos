@@ -7,11 +7,13 @@ defineProps({
 </script>
 
 <template>
-  <div class="page-head">
-    <div>
-      <h1>{{ title }}</h1>
-      <p v-if="subtitle">{{ subtitle }}</p>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div class="mb-3 mb-md-0">
+      <h1 class="h3 fw-bold mb-1">{{ title }}</h1>
+      <p v-if="subtitle" class="text-muted mb-0">{{ subtitle }}</p>
     </div>
-    <slot name="action" />
+    <div>
+      <slot name="action" />
+    </div>
   </div>
 </template>
