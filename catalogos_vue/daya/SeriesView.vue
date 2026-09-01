@@ -1,3 +1,81 @@
+<script setup>
+import { ref, reactive, onMounted } from 'vue';
+import axios from 'axios';
+import { useGlobalStore } from '../stores/store.js';
+import PageHeader from '../components/PageHeader.vue';
+import DataTable from '../components/DataTable.vue';
+import ModalBase from '../components/ModalBase.vue';
+import StatusBadge from '../components/StatusBadge.vue';
+import ToastNotification from '../components/ToastNotification.vue';
+
+const global = useGlobalStore();
+const toast = ref(null);
+
+const series = ref([]);
+const cat = reactive({ presentaciones: [], almacenes: [] });
+const loading = ref(false);
+const modal = ref(false);
+const form = reactive({});
+
+const serieQuery = ref('');
+const serieConsulta = ref(null);
+
+const headers = ['Serie', 'Producto', 'Almacén', 'Estado', 'Ingreso'];
+
+const loadCat = async () => {
+  try {
+    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    Object.assign(cat, data);
+  } catch (e) {
+    toast.value?.apiErr(e);
+  }
+};
+
+const load = async () => {
+  loading.value = true;
+  try {
+    const { data } = await axios.get(`${global.baseUrl}/series`);
+    series.value = data;
+  } catch (e) {
+    toast.value?.apiErr(e);
+  }
+  loading.value = false;
+};
+
+const nueva = () => {
+  Object.keys(form).forEach((k) => delete form[k]);
+  Object.assign(form, { id_presentacion: '', id_almacen: '', numero_serie: '', fecha_ingreso: '' });
+  modal.value = true;
+};
+
+const guardar = async () => {
+  try {
+    await axios.post(`${global.baseUrl}/series`, form);
+    toast.value.notify('Serie registrada');
+    modal.value = false;
+    load();
+  } catch (e) {
+    toast.value.apiErr(e);
+  }
+};
+
+const consultar = async () => {
+  if (!serieQuery.value) return;
+  try {
+    const { data } = await axios.get(`${global.baseUrl}/series/consultar/${encodeURIComponent(serieQuery.value)}`);
+    serieConsulta.value = data;
+  } catch (e) {
+    serieConsulta.value = null;
+    toast.value.apiErr(e);
+  }
+};
+
+onMounted(() => {
+  loadCat();
+  load();
+});
+</script>
+
 <template>
   <section class="container-fluid py-4">
     <PageHeader title="Series de producto" subtitle="Trazabilidad por número de serie (no se duplica).">
