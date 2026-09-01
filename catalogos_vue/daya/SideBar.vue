@@ -33,23 +33,39 @@ const nav = [
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="brand">
-      <i class="bi bi-diagram-3-fill" style="color:var(--brand)"></i>
-      <div>MÓDULOS<small>RH · Promociones · Garantías</small></div>
+  <aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 280px; min-height: 100vh;">
+    <div class="d-flex align-items-center gap-2 mb-4 px-2 text-decoration-none">
+      <i class="bi bi-diagram-3-fill fs-4 text-primary"></i>
+      <div class="fw-bold lh-sm text-dark">
+        MÓDULOS
+        <small class="d-block text-muted fw-normal" style="font-size: 0.75rem;">RH · Promociones · Garantías</small>
+      </div>
     </div>
-    <template v-for="grp in nav" :key="grp.g">
-      <div class="nav-group">{{ grp.g }}</div>
-      <router-link
-        v-for="it in grp.items"
-        :key="it.path"
-        :to="it.path"
-        class="nav-item"
-        active-class="active"
-        :data-testid="'nav-' + it.key"
-      >
-        <i :class="'bi ' + it.icon"></i>{{ it.label }}
-      </router-link>
-    </template>
+    
+    <nav class="nav flex-column gap-1">
+      template v-for="grp in nav" :key="grp.g"
+      <template v-for="grp in nav" :key="grp.g">
+        <div class="text-uppercase text-muted fw-bold px-2 py-1 mt-3 mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+          {{ grp.g }}
+        </div>
+        <router-link
+          v-for="it in grp.items"
+          :key="it.path"
+          :to="it.path"
+          class="nav-link d-flex align-items-center gap-2 py-2 px-3 rounded text-dark"
+          active-class="active bg-primary text-white shadow-sm"
+          :data-testid="'nav-' + it.key"
+        >
+          <i :class="['bi', it.icon, 'fs-5']"></i>
+          <span>{{ it.label }}</span>
+        </router-link>
+      </template>
+    </nav>
   </aside>
 </template>
+
+<style scoped>
+.nav-link:hover:not(.active) {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+</style>
