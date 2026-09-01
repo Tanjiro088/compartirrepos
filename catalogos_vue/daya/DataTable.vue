@@ -8,19 +8,25 @@ defineProps({
 </script>
 
 <template>
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th v-for="(h, i) in headers" :key="i">{{ h }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <slot />
-        <tr v-if="empty">
-          <td :colspan="headers.length" class="empty">{{ emptyText }}</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="card shadow-sm border-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th v-for="(h, i) in headers" :key="i" class="py-3 px-3 fw-semibold text-secondary">
+              {{ h }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <slot />
+          <tr v-if="empty">
+            <td :colspan="headers.length" class="text-center py-4 text-muted fst-italic">
+              {{ emptyText }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
