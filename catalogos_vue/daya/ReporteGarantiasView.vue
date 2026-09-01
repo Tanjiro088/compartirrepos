@@ -23,62 +23,97 @@ onMounted(load);
 </script>
 
 <template>
-  <section>
+  <section class="container-fluid py-4">
     <PageHeader title="Reporte de garantías" subtitle="Productos con mayor índice de fallas, motivos y estados." />
 
     <div v-if="reporte">
-      <div class="stats">
-        <div class="stat">
-          <i class="bi bi-shield-check"></i>
-          <div class="n">{{ reporte.total_garantias }}</div>
-          <div class="l">Total garantías</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-3">
+          <div class="card border-0 shadow-sm p-3 bg-light h-100">
+            <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+              <i class="bi bi-shield-check fs-4"></i>
+              <span class="text-muted small fw-semibold">Total garantías</span>
+            </div>
+            <div class="fs-3 fw-bold">{{ reporte.total_garantias }}</div>
+          </div>
         </div>
-        <div class="stat" v-for="(t, k) in reporte.estados" :key="k">
-          <div class="n">{{ t }}</div>
-          <div class="l">{{ k }}</div>
+        <div class="col-md-4 col-lg-3" v-for="(t, k) in reporte.estados" :key="k">
+          <div class="card border-0 shadow-sm p-3 bg-light h-100">
+            <div class="text-muted small fw-semibold text-capitalize mb-2">{{ k }}</div>
+            <div class="fs-3 fw-bold text-primary">{{ t }}</div>
+          </div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="card">
-          <div class="card-pad"><h4 style="margin:0 0 4px">Productos más fallados</h4></div>
-          <table>
-            <thead><tr><th>Producto</th><th>Garantías</th><th>%</th></tr></thead>
-            <tbody>
-              <tr v-for="p in reporte.productos" :key="p.producto">
-                <td>{{ p.producto }}</td>
-                <td>{{ p.garantias }}</td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="flex:1;height:6px;background:var(--line);border-radius:4px;overflow:hidden">
-                      <div :style="{ width: p.porcentaje + '%', height: '100%', background: 'var(--brand)' }"></div>
-                    </div>
-                    <span class="sub">{{ p.porcentaje }}%</span>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="!reporte.productos.length"><td colspan="3" class="empty">Sin datos</td></tr>
-            </tbody>
-          </table>
+      <div class="row g-4">
+        <div class="col-12 col-lg-6">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <h4 class="h5 fw-bold mb-3">Productos más fallados</h4>
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Producto</th>
+                      <th>Garantías</th>
+                      <th style="width: 40%;">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="p in reporte.productos" :key="p.producto">
+                      <td class="fw-semibold">{{ p.producto }}</td>
+                      <td>{{ p.garantias }}</td>
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="progress flex-grow-1" style="height: 6px;">
+                            <div class="progress-bar bg-primary" :style="{ width: p.porcentaje + '%' }" role="progressbar"></div>
+                          </div>
+                          <span class="text-muted small">{{ p.porcentaje }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr v-if="!reporte.productos.length">
+                      <td colspan="3" class="text-center py-4 text-muted fst-italic">Sin datos</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="card">
-          <div class="card-pad"><h4 style="margin:0 0 4px">Motivos más comunes</h4></div>
-          <table>
-            <thead><tr><th>Motivo (diagnóstico)</th><th>Cantidad</th></tr></thead>
-            <tbody>
-              <tr v-for="m in reporte.motivos" :key="m.motivo">
-                <td>{{ m.motivo }}</td>
-                <td>{{ m.cantidad }}</td>
-              </tr>
-              <tr v-if="!reporte.motivos.length"><td colspan="2" class="empty">Sin datos</td></tr>
-            </tbody>
-          </table>
+        <div class="col-12 col-lg-6">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <h4 class="h5 fw-bold mb-3">Motivos más comunes</h4>
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Motivo (diagnóstico)</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="m in reporte.motivos" :key="m.motivo">
+                      <td class="fw-semibold">{{ m.motivo }}</td>
+                      <td>{{ m.cantidad }}</td>
+                    </tr>
+                    <tr v-if="!reporte.motivos.length">
+                      <td colspan="2" class="text-center py-4 text-muted fst-italic">Sin datos</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="empty">Cargando reporte…</div>
+    <div v-else class="text-center py-5 text-muted fst-italic">
+      Cargando reporte…
+    </div>
 
     <ToastNotification ref="toast" />
   </section>
