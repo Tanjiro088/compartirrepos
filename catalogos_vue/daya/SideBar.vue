@@ -43,7 +43,6 @@ const nav = [
     </div>
     
     <nav class="nav flex-column gap-1">
-      template v-for="grp in nav" :key="grp.g"
       <template v-for="grp in nav" :key="grp.g">
         <div class="text-uppercase text-muted fw-bold px-2 py-1 mt-3 mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">
           {{ grp.g }}
