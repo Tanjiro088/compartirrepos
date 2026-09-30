@@ -11,6 +11,8 @@ import ModalBase from '@/components/ModalBase.vue';
 import ToastNotification from '@/components/ToastNotification.vue';
 
 const global = useGlobalStore();
+// Definimos la ruta base limpia para las personas evitando dobles diagonales
+const API_URL = `${global.baseUrl}personas`;
 const toast = ref(null);
 
 const personas = ref([]);
@@ -80,7 +82,7 @@ const personasFiltradas = computed(() => {
 const fetchPersonas = async () => {
   loading.value = true;
   try {
-    const response = await axios.get(`${global.baseUrl}/personas`);
+    const response = await axios.get(API_URL);
     
     if (response.data && Array.isArray(response.data.data)) {
       personas.value = response.data.data;
@@ -139,9 +141,9 @@ const guardar = async () => {
   errors.value = {};
   try {
     if (editMode.value) {
-      await axios.put(`${global.baseUrl}/personas/${form.value.id_persona}`, form.value);
+      await axios.put(`${API_URL}/${form.value.id_persona}`, form.value);
     } else {
-      await axios.post(`${global.baseUrl}/personas`, form.value);
+      await axios.post(API_URL, form.value);
     }
     modal.value = false;
     fetchPersonas();
@@ -160,7 +162,7 @@ const eliminar = async (p) => {
   if (confirm(`¿Estás seguro de ${accion} a esta persona?`)) {
     try {
       p.activo = !p.activo;
-      await axios.put(`${global.baseUrl}/personas/${p.id_persona}`, p);
+      await axios.put(`${API_URL}/${p.id_persona}`, p);
       fetchPersonas();
     } catch (error) {
       console.error('Error al cambiar estado:', error);
@@ -370,7 +372,6 @@ onMounted(() => {
     <ToastNotification ref="toast" />
   </section>
 </template>
-
 
 <style scoped>
 .text-danger {
