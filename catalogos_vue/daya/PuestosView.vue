@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}puestos`;
 const toast = ref(null);
 
 const puestos = ref([]);
@@ -27,7 +28,7 @@ const headers = ['Nombre', 'Nivel', 'Descripción', 'Salario base', 'Estado', ''
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/puestos`, {
+    const { data } = await axios.get(API_URL, {
       params: {
         search: filtroBusqueda.value,
         activo: filtroActivo.value
@@ -59,8 +60,8 @@ const editar = (p) => {
 
 const guardar = async () => {
   try {
-    if (form.id_puesto) await axios.put(`${global.baseUrl}/puestos/${form.id_puesto}`, form);
-    else await axios.post(`${global.baseUrl}/puestos`, form);
+    if (form.id_puesto) await axios.put(`${API_URL}/${form.id_puesto}`, form);
+    else await axios.post(API_URL, form);
     toast.value.notify('Puesto guardado');
     modal.value = false;
     load();
@@ -71,7 +72,7 @@ const guardar = async () => {
 
 const cambiarEstado = async (p) => {
   try {
-    const { data } = await axios.delete(`${global.baseUrl}/puestos/${p.id_puesto}`);
+    const { data } = await axios.delete(`${API_URL}/${p.id_puesto}`);
     // Actualizamos el estado localmente de inmediato para evitar desincronizaciones
     p.activo = data.activo;
     toast.value.notify(data.message);
