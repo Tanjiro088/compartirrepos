@@ -9,6 +9,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}promociones`;
 const toast = ref(null);
 
 const promociones = ref([]);
@@ -33,7 +34,7 @@ const toggleArr = (arr, val) => {
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -43,7 +44,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/promociones`);
+    const { data } = await axios.get(API_URL);
     promociones.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -67,7 +68,7 @@ const nueva = () => {
 
 const editar = async (p) => {
   try {
-    const { data: d } = await axios.get(`${global.baseUrl}/promociones/${p.id_promocion}`);
+    const { data: d } = await axios.get(`${API_URL}/${p.id_promocion}`);
     const regla = (d.reglas && d.reglas[0]) || {};
     promoDias.value = d.dias ? Object.keys(d.dias).filter((k) => diasSemana.includes(k) && d.dias[k]) : [];
     promoPres.value = (d.presentaciones || []).map(Number);
@@ -91,8 +92,8 @@ const editar = async (p) => {
 const guardar = async () => {
   try {
     const payload = { ...form, dias: promoDias.value, presentaciones: promoPres.value, sucursales: promoSuc.value };
-    if (form.id_promocion) await axios.put(`${global.baseUrl}/promociones/${form.id_promocion}`, payload);
-    else await axios.post(`${global.baseUrl}/promociones`, payload);
+    if (form.id_promocion) await axios.put(`${API_URL}/${form.id_promocion}`, payload);
+    else await axios.post(API_URL, payload);
     toast.value.notify('Promoción guardada');
     modal.value = false;
     load();
@@ -104,7 +105,7 @@ const guardar = async () => {
 const eliminar = async (p) => {
   if (!confirm('¿Eliminar promoción?')) return;
   try {
-    await axios.delete(`${global.baseUrl}/promociones/${p.id_promocion}`);
+    await axios.delete(`${API_URL}/${p.id_promocion}`);
     toast.value.notify('Promoción eliminada');
     load();
   } catch (e) {
