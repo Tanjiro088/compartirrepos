@@ -9,6 +9,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}series`;
 const toast = ref(null);
 
 const series = ref([]);
@@ -24,7 +25,7 @@ const headers = ['Serie', 'Producto', 'Almacén', 'Estado', 'Ingreso'];
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -34,7 +35,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/series`);
+    const { data } = await axios.get(API_URL);
     series.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -50,7 +51,7 @@ const nueva = () => {
 
 const guardar = async () => {
   try {
-    await axios.post(`${global.baseUrl}/series`, form);
+    await axios.post(API_URL, form);
     toast.value.notify('Serie registrada');
     modal.value = false;
     load();
@@ -62,7 +63,7 @@ const guardar = async () => {
 const consultar = async () => {
   if (!serieQuery.value) return;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/series/consultar/${encodeURIComponent(serieQuery.value)}`);
+    const { data } = await axios.get(`${API_URL}/consultar/${encodeURIComponent(serieQuery.value)}`);
     serieConsulta.value = data;
   } catch (e) {
     serieConsulta.value = null;
