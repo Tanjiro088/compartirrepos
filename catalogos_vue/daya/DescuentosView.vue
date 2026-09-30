@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}descuentos-automaticos`;
 const toast = ref(null);
 
 const descuentos = ref([]);
@@ -22,7 +23,7 @@ const headers = ['Empleado', 'Concepto', 'Tipo', 'Valor', 'Frecuencia', 'Estado'
 
 const loadEmpleados = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados`);
+    const { data } = await axios.get(`${global.baseUrl}empleados`);
     empleados.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -32,7 +33,7 @@ const loadEmpleados = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/descuentos-automaticos`);
+    const { data } = await axios.get(API_URL);
     descuentos.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -48,7 +49,7 @@ const nuevo = () => {
 
 const guardar = async () => {
   try {
-    await axios.post(`${global.baseUrl}/descuentos-automaticos`, form);
+    await axios.post(API_URL, form);
     toast.value.notify('Descuento configurado y aplicado');
     modal.value = false;
     load();
