@@ -12,6 +12,7 @@ import TableToolbar from '../components/TableToolbar.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}nominas`;
 const toast = ref(null);
 
 const nominas = ref([]);
@@ -43,7 +44,7 @@ const nominasFiltradas = computed(() => {
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -53,7 +54,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/nominas`);
+    const { data } = await axios.get(API_URL);
     nominas.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -64,7 +65,7 @@ const load = async () => {
 // Ajuste manual de nómina (una por empleado).
 const verNomina = async (n) => {
   try {
-    const { data: d } = await axios.get(`${global.baseUrl}/nominas/${n.id_nomina}`);
+    const { data: d } = await axios.get(`${API_URL}/${n.id_nomina}`);
     Object.keys(form).forEach((k) => delete form[k]);
     Object.assign(form, d);
     modalTitle.value = 'Nómina · ' + (n.empleado || '');
@@ -76,7 +77,7 @@ const verNomina = async (n) => {
 
 const guardar = async () => {
   try {
-    await axios.put(`${global.baseUrl}/nominas/${form.id_nomina}`, form);
+    await axios.put(`${API_URL}/${form.id_nomina}`, form);
     toast.value.notify('Nómina actualizada');
     modal.value = false;
     load();
@@ -87,13 +88,12 @@ const guardar = async () => {
 
 const pagarNomina = async (n) => {
   try {
-    const response = await axios.post(`${global.baseUrl}/nominas/${n.id_nomina}/pagar`, { 
+    const response = await axios.post(`${API_URL}/${n.id_nomina}/pagar`, { 
       referencia: 'PAGO-' + n.id_nomina 
     });
     toast.value.notify('Nómina pagada');
     load();
   } catch (e) {
-    // Imprimimos el error real que viene del servidor Laravel en la consola
     console.error("Detalle del error del servidor:", e.response?.data || e.message);
     toast.value.apiErr(e);
   }
@@ -102,7 +102,7 @@ const pagarNomina = async (n) => {
 // Genera el recibo de nómina en PDF del lado del cliente (jsPDF).
 const reciboNomina = async (n) => {
   try {
-    const { data: d } = await axios.get(`${global.baseUrl}/nominas/${n.id_nomina}`);
+    const { data: d } = await axios.get(`${API_URL}/${n.id_nomina}`);
     const doc = new jsPDF();
     const L = 18;
     let y = 20;
@@ -111,7 +111,7 @@ const reciboNomina = async (n) => {
     doc.setTextColor(255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text('DAYARI ERP', L, 15);
+    doc.text('POS', L, 15);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text('Recibo de Nómina', L, 21);
@@ -175,7 +175,7 @@ const reciboNomina = async (n) => {
     doc.setTextColor(120);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Documento generado por DAYARI ERP · ' + new Date().toLocaleString('es-MX'), L, 285);
+    doc.text('Documento generado por POS · ' + new Date().toLocaleString('es-MX'), L, 285);
     doc.save(`recibo_nomina_${d.id_nomina}.pdf`);
     toast.value.notify('Recibo PDF generado');
   } catch (e) {
