@@ -6,13 +6,14 @@ import PageHeader from '../components/PageHeader.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}garantias/reporte`;
 const toast = ref(null);
 
 const reporte = ref(null);
 
 const load = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/garantias/reporte`);
+    const { data } = await axios.get(API_URL);
     reporte.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
