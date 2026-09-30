@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}combos`;
 const toast = ref(null);
 
 const combos = ref([]);
@@ -31,7 +32,7 @@ const comboNormal = computed(() =>
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -41,7 +42,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/combos`);
+    const { data } = await axios.get(API_URL);
     combos.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -61,7 +62,7 @@ const rmItem = (i) => comboProductos.value.splice(i, 1);
 
 const guardar = async () => {
   try {
-    await axios.post(`${global.baseUrl}/combos`, { ...form, productos: comboProductos.value });
+    await axios.post(API_URL, { ...form, productos: comboProductos.value });
     toast.value.notify('Combo creado');
     modal.value = false;
     load();
@@ -73,7 +74,7 @@ const guardar = async () => {
 const eliminar = async (c) => {
   if (!confirm('¿Eliminar combo?')) return;
   try {
-    await axios.delete(`${global.baseUrl}/combos/${c.id_combo}`);
+    await axios.delete(`${API_URL}/${c.id_combo}`);
     toast.value.notify('Combo eliminado');
     load();
   } catch (e) {
