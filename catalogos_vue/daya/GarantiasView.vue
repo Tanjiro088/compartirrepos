@@ -10,6 +10,7 @@ import TableToolbar from '../components/TableToolbar.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}garantias`;
 const toast = ref(null);
 
 const garantias = ref([]);
@@ -43,7 +44,7 @@ const garantiasFiltradas = computed(() => {
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -53,7 +54,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/garantias`);
+    const { data } = await axios.get(API_URL);
     garantias.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -70,7 +71,7 @@ const nueva = () => {
 const guardar = async () => {
   const payload = { ...form, detalles: [{ id_presentacion: form.d_presentacion, id_serie: form.d_serie || null, diagnostico: form.d_diagnostico, solucion: form.d_solucion }] };
   try {
-    await axios.post(`${global.baseUrl}/garantias`, payload);
+    await axios.post(API_URL, payload);
     toast.value.notify('Garantía registrada');
     modal.value = false;
     load();
@@ -90,7 +91,7 @@ const reposicion = async (g) => {
   const alm = cat.almacenes[0]?.id_almacen;
   const us = cat.usuarios[0]?.id_usuario;
   try {
-    await axios.post(`${global.baseUrl}/garantias/${g.id_garantia}/reposicion`, { id_usuario: us, nuevo_serie: ns, id_presentacion: pres, id_almacen: alm, observaciones: 'Reposición desde UI' });
+    await axios.post(`${API_URL}/${g.id_garantia}/reposicion`, { id_usuario: us, nuevo_serie: ns, id_presentacion: pres, id_almacen: alm, observaciones: 'Reposición desde UI' });
     toast.value.notify('Reposición registrada');
     load();
   } catch (e) {
