@@ -9,6 +9,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const EMPLEADOS_URL = `${global.baseUrl}empleados`;
 const toast = ref(null);
 
 const empleados = ref([]);
@@ -20,7 +21,7 @@ const headers = ['Fecha', 'Tipo', 'Monto', 'Método', 'Referencia'];
 
 const loadEmpleados = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados`);
+    const { data } = await axios.get(EMPLEADOS_URL);
     empleados.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -31,7 +32,7 @@ const consultar = async () => {
   if (!empSel.value) return;
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados/${empSel.value}/historial`);
+    const { data } = await axios.get(`${EMPLEADOS_URL}/${empSel.value}/historial`);
     historial.value = data;
   } catch (e) {
     toast.value.apiErr(e);
