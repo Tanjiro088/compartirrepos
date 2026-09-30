@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}anticipos`;
 const toast = ref(null);
 
 const anticipos = ref([]);
@@ -23,7 +24,7 @@ const headers = ['Folio', 'Empleado', 'Monto', 'Pagos', 'Por pago', 'Saldo', 'Es
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -32,7 +33,7 @@ const loadCat = async () => {
 
 const loadEmpleados = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados`);
+    const { data } = await axios.get(`${global.baseUrl}empleados`);
     empleados.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -42,7 +43,7 @@ const loadEmpleados = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/anticipos`);
+    const { data } = await axios.get(API_URL);
     anticipos.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -59,7 +60,7 @@ const nuevo = () => {
 
 const guardar = async () => {
   try {
-    await axios.post(`${global.baseUrl}/anticipos`, form);
+    await axios.post(API_URL, form);
     toast.value.notify('Anticipo registrado y aplicado a nómina');
     modal.value = false;
     load();
@@ -72,7 +73,7 @@ const abonar = async (a) => {
   const m = prompt('Monto a abonar (deuda ' + money(a.saldo_pendiente) + ')');
   if (!m) return;
   try {
-    await axios.post(`${global.baseUrl}/anticipos/${a.id_anticipo}/abonar`, { monto: parseFloat(m) });
+    await axios.post(`${API_URL}/${a.id_anticipo}/abonar`, { monto: parseFloat(m) });
     toast.value.notify('Abono aplicado, deuda descontada');
     load();
   } catch (e) {
