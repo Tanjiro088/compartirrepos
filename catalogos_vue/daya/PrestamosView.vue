@@ -10,6 +10,7 @@ import StatusBadge from '../components/StatusBadge.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}prestamos`;
 const toast = ref(null);
 
 const prestamos = ref([]);
@@ -23,7 +24,7 @@ const headers = ['Folio', 'Empleado', 'Total', 'Pagado', 'Saldo', 'Estado', ''];
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
     Object.assign(cat, data);
   } catch (e) {
     toast.value?.apiErr(e);
@@ -32,7 +33,7 @@ const loadCat = async () => {
 
 const loadEmpleados = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados`);
+    const { data } = await axios.get(`${global.baseUrl}empleados`);
     empleados.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -42,7 +43,7 @@ const loadEmpleados = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/prestamos`);
+    const { data } = await axios.get(API_URL);
     prestamos.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -58,7 +59,7 @@ const nuevo = () => {
 
 const guardar = async () => {
   try {
-    await axios.post(`${global.baseUrl}/prestamos`, form);
+    await axios.post(API_URL, form);
     toast.value.notify('Préstamo registrado, cuota aplicada a nómina');
     modal.value = false;
     load();
@@ -74,7 +75,7 @@ const pagar = async (p) => {
   const idUsuario = cat.usuarios[0]?.id_usuario;
   const idForma = cat.formas_pago[0]?.id_forma_pago;
   try {
-    await axios.post(`${global.baseUrl}/prestamos/${p.id_prestamo}/pagar`, { monto: parseFloat(m), id_forma_pago: idForma, id_usuario: idUsuario, referencia: 'ABONO' });
+    await axios.post(`${API_URL}/${p.id_prestamo}/pagar`, { monto: parseFloat(m), id_forma_pago: idForma, id_usuario: idUsuario, referencia: 'ABONO' });
     toast.value.notify('Pago registrado, deuda descontada');
     load();
   } catch (e) {
