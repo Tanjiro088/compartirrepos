@@ -11,6 +11,7 @@ import TableToolbar from '../components/TableToolbar.vue';
 import ToastNotification from '../components/ToastNotification.vue';
 
 const global = useGlobalStore();
+const API_URL = `${global.baseUrl}empleados`;
 const toast = ref(null);
 
 const empleados = ref([]);
@@ -48,10 +49,9 @@ const empleadosFiltrados = computed(() => {
 
 const loadCat = async () => {
   try {
-    const { data } = await axios.get(`${global.baseUrl}/catalogos`);
-    console.log("Catálogos recibidos:", data); // <-- Revisa esto en la consola del navegador (F12)
+    const { data } = await axios.get(`${global.baseUrl}catalogos`);
+    console.log("Catálogos recibidos:", data);
     
-    // Validamos que data tenga las propiedades antes de asignarlas
     if (data) {
       cat.personas = data.personas || [];
       cat.puestos = data.puestos || [];
@@ -66,7 +66,7 @@ const loadCat = async () => {
 const load = async () => {
   loading.value = true;
   try {
-    const { data } = await axios.get(`${global.baseUrl}/empleados`);
+    const { data } = await axios.get(API_URL);
     empleados.value = data;
   } catch (e) {
     toast.value?.apiErr(e);
@@ -80,14 +80,14 @@ const seed = (obj = {}) => {
 };
 
 const nuevo = async () => {
-  await loadCat(); // <-- Recarga los catálogos frescos antes de abrir
+  await loadCat();
   modalTitle.value = 'Nuevo empleado';
   seed({ id_persona: '', id_puesto: '', id_sucursal: '', numero_empleado: '', fecha_contratacion: '', tipo_contrato: 'Tiempo completo', jornada: 'Matutina', banco: '', numero_cuenta: '', clabe: '' });
   modal.value = true;
 };
 
 const editar = async (e) => {
-  await loadCat(); // <-- Recarga los catálogos frescos antes de abrir
+  await loadCat();
   modalTitle.value = 'Editar empleado';
   seed({ ...e });
   modal.value = true;
@@ -95,8 +95,8 @@ const editar = async (e) => {
 
 const guardar = async () => {
   try {
-    if (form.id_empleado) await axios.put(`${global.baseUrl}/empleados/${form.id_empleado}`, form);
-    else await axios.post(`${global.baseUrl}/empleados`, form);
+    if (form.id_empleado) await axios.put(`${API_URL}/${form.id_empleado}`, form);
+    else await axios.post(API_URL, form);
     toast.value.notify('Empleado guardado · nómina generada');
     modal.value = false;
     load();
@@ -107,9 +107,8 @@ const guardar = async () => {
 
 const eliminar = async (e) => {
   const accion = e.activo ? 'desactivar' : 'activar';
-  // if (!confirm(`¿Estás seguro de ${accion} este empleado?`)) return;
   try {
-    const { data } = await axios.delete(`${global.baseUrl}/empleados/${e.id_empleado}`);
+    const { data } = await axios.delete(`${API_URL}/${e.id_empleado}`);
     toast.value.notify(data.message || 'Estado actualizado correctamente');
     load();
   } catch (err) {
