@@ -13,15 +13,16 @@ const API_URL = `${global.baseUrl}promociones`;
 const toast = ref(null);
 
 const promociones = ref([]);
-const cat = reactive({ tipos_promocion: [], presentaciones: [], sucursales: [] });
+// Se ajusta el catálogo para recibir los productos generales en lugar de presentaciones directas
+const cat = reactive({ tipos_promocion: [], productos: [], sucursales: [] });
 const loading = ref(false);
 const modal = ref(false);
 const modalTitle = ref('');
 const form = reactive({});
 
-// Selecciones múltiples de la promoción.
+// Selecciones múltiples de la promoción utilizando los identificadores de productos
 const promoDias = ref([]);
-const promoPres = ref([]);
+const promoProd = ref([]);
 const promoSuc = ref([]);
 const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 
@@ -59,7 +60,7 @@ const seed = (obj = {}) => {
 
 const nueva = () => {
   promoDias.value = [];
-  promoPres.value = [];
+  promoProd.value = [];
   promoSuc.value = [];
   modalTitle.value = 'Nueva promoción';
   seed({ nombre: '', descripcion: '', fecha_inicio: '', fecha_fin: '', prioridad: 1, acumulable: false, activa: true, id_tipo_promocion: '', porcentaje_descuento: 0, importe_descuento: 0, precio_especial: 0, cantidad_minima: 0, importe_minimo: 0 });
@@ -71,7 +72,7 @@ const editar = async (p) => {
     const { data: d } = await axios.get(`${API_URL}/${p.id_promocion}`);
     const regla = (d.reglas && d.reglas[0]) || {};
     promoDias.value = d.dias ? Object.keys(d.dias).filter((k) => diasSemana.includes(k) && d.dias[k]) : [];
-    promoPres.value = (d.presentaciones || []).map(Number);
+    promoProd.value = (d.productos || []).map(Number);
     promoSuc.value = (d.sucursales || []).map(Number);
     modalTitle.value = 'Editar promoción';
     seed({
@@ -91,7 +92,7 @@ const editar = async (p) => {
 
 const guardar = async () => {
   try {
-    const payload = { ...form, dias: promoDias.value, presentaciones: promoPres.value, sucursales: promoSuc.value };
+    const payload = { ...form, dias: promoDias.value, productos: promoProd.value, sucursales: promoSuc.value };
     if (form.id_promocion) await axios.put(`${API_URL}/${form.id_promocion}`, payload);
     else await axios.post(API_URL, payload);
     toast.value.notify('Promoción guardada');
@@ -227,11 +228,12 @@ onMounted(() => {
             </span>
           </div>
         </div>
+        <!-- Renderizado de productos generales desde el catálogo -->
         <div class="col-12">
           <label class="form-label fw-semibold d-block">Productos incluidos</label>
           <div class="d-flex flex-wrap gap-2">
-            <span v-for="p in cat.presentaciones" :key="p.id_presentacion" class="badge cursor-pointer px-3 py-2" :class="promoPres.includes(p.id_presentacion) ? 'bg-primary' : 'bg-light text-dark border'" @click="toggleArr(promoPres, p.id_presentacion)">
-              {{ p.nombre }}
+            <span v-for="prod in cat.productos" :key="prod.id_producto" class="badge cursor-pointer px-3 py-2" :class="promoProd.includes(prod.id_producto) ? 'bg-primary' : 'bg-light text-dark border'" @click="toggleArr(promoProd, prod.id_producto)">
+              {{ prod.nombre }}
             </span>
           </div>
         </div>
