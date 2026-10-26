@@ -51,7 +51,11 @@ onMounted(loadEmpleados);
       <div class="col-md-6 col-lg-4">
         <select v-model="empSel" class="form-select" data-testid="hist-emp-select">
           <option value="">Selecciona empleado…</option>
-          <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option>
+          <!-- Se muestran todos los empleados (activos e inactivos) con su nombre formateado correctamente -->
+          <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">
+            {{ e.persona?.nombre ?? '' }} {{ e.persona?.apellido_paterno ?? '' }} {{ e.persona?.apellido_materno ?? '' }}
+            {{ e.activo ? '' : '(Inactivo)' }}
+          </option>
         </select>
       </div>
       <div class="col-auto">
