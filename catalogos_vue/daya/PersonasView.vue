@@ -248,6 +248,7 @@ onMounted(() => {
             <option value="RUC">RUC</option>
             <option value="Pasaporte">Pasaporte</option>
             <option value="CE">CE</option>
+            <option value="INE">INE</option>
           </select>
           <span v-if="errors.tipo_documento" class="text-danger small mt-1 d-block">{{ errors.tipo_documento[0] }}</span>
         </div>
