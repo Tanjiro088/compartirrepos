@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { money } from '../helpers';
 import { useGlobalStore } from '../stores/store.js';
@@ -20,6 +20,11 @@ const modal = ref(false);
 const form = reactive({});
 
 const headers = ['Empleado', 'Concepto', 'Tipo', 'Valor', 'Frecuencia', 'Estado'];
+
+// Propiedad computada para filtrar únicamente empleados activos en el select
+const empleadosActivos = computed(() => {
+  return empleados.value.filter(e => e.activo);
+});
 
 const loadEmpleados = async () => {
   try {
@@ -43,7 +48,16 @@ const load = async () => {
 
 const nuevo = () => {
   Object.keys(form).forEach((k) => delete form[k]);
-  Object.assign(form, { id_empleado: '', concepto: '', tipo: 'monto_fijo', valor: 0, frecuencia: 'mensual', fecha_inicio: '', fecha_fin: '' });
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  Object.assign(form, { 
+    id_empleado: '', 
+    concepto: '', 
+    tipo: 'monto_fijo', 
+    valor: 0, 
+    frecuencia: 'mensual', 
+    fecha_inicio: fechaHoy, 
+    fecha_fin: '' 
+  });
   modal.value = true;
 };
 
@@ -54,7 +68,7 @@ const guardar = async () => {
     modal.value = false;
     load();
   } catch (e) {
-    toast.value.apiErr(e);
+    toast.value?.apiErr(e);
   }
 };
 
@@ -101,7 +115,8 @@ onMounted(() => {
           <label class="form-label fw-semibold">Empleado *</label>
           <select class="form-select" v-model="form.id_empleado">
             <option value="">—</option>
-            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">
+            <!-- Usamos la lista computada de empleados activos -->
+            <option v-for="e in empleadosActivos" :key="e.id_empleado" :value="e.id_empleado">
               {{ e.persona?.nombre ?? e.nombre }} {{ e.persona?.apellido_paterno ?? e.apellido_paterno ?? '' }} {{ e.persona?.apellido_materno ?? e.apellido_materno ?? '' }}
             </option>
           </select>
