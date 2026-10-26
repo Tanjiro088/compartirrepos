@@ -22,6 +22,10 @@ const modal = ref(false);
 const modalTitle = ref('');
 const form = reactive({});
 
+// Estado para el modal de pago
+const pagoModal = ref(false);
+const pagoForm = reactive({ id_nomina: null, id_forma_pago: '', referencia: '', observaciones: '' });
+
 const headers = ['Empleado', 'Periodo', 'Ingresos', 'Descuentos', 'Neto', 'Estado', ''];
 
 // Búsqueda y filtro por estado.
@@ -62,7 +66,6 @@ const load = async () => {
   loading.value = false;
 };
 
-// Ajuste manual de nómina (una por empleado).
 const verNomina = async (n) => {
   try {
     const { data: d } = await axios.get(`${API_URL}/${n.id_nomina}`);
@@ -86,12 +89,26 @@ const guardar = async () => {
   }
 };
 
-const pagarNomina = async (n) => {
+// Abre el modal para capturar los datos de pago
+const abrirModalPago = (n) => {
+  pagoForm.id_nomina = n.id_nomina;
+  pagoForm.id_forma_pago = cat.formas_pago[0]?.id_forma_pago || '';
+  pagoForm.referencia = 'PAGO-' + n.id_nomina;
+  pagoForm.observaciones = '';
+  pagoModal.value = true;
+};
+
+// Ejecuta el pago enviando los datos del modal
+const confirmarPago = async () => {
   try {
-    const response = await axios.post(`${API_URL}/${n.id_nomina}/pagar`, { 
-      referencia: 'PAGO-' + n.id_nomina 
+    await axios.post(`${API_URL}/${pagoForm.id_nomina}/pagar`, {
+      id_forma_pago: pagoForm.id_forma_pago,
+      id_usuario: cat.usuarios[0]?.id_usuario || null,
+      referencia: pagoForm.referencia,
+      observaciones: pagoForm.observaciones
     });
-    toast.value.notify('Nómina pagada');
+    toast.value.notify('Nómina pagada y registrada en el historial');
+    pagoModal.value = false;
     load();
   } catch (e) {
     console.error("Detalle del error del servidor:", e.response?.data || e.message);
@@ -99,8 +116,8 @@ const pagarNomina = async (n) => {
   }
 };
 
-// Genera el recibo de nómina en PDF del lado del cliente (jsPDF).
 const reciboNomina = async (n) => {
+  // Lógica de recibo PDF existente...
   try {
     const { data: d } = await axios.get(`${API_URL}/${n.id_nomina}`);
     const doc = new jsPDF();
@@ -225,7 +242,8 @@ onMounted(() => {
             <button v-if="n.estado === 'pagada'" class="btn btn-outline-secondary btn-sm me-1 d-inline-flex align-items-center gap-1" @click="reciboNomina(n)" data-testid="recibo-btn">
               <i class="bi bi-file-earmark-pdf"></i> Recibo
             </button>
-            <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" :disabled="n.estado === 'pagada'" @click="pagarNomina(n)">
+            <!-- Llama al modal de pago en lugar de pagar directamente -->
+            <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" :disabled="n.estado === 'pagada'" @click="abrirModalPago(n)">
               <i class="bi bi-check2"></i> Pagar
             </button>
           </td>
@@ -233,6 +251,7 @@ onMounted(() => {
       </DataTable>
     </template>
 
+    <!-- Modal de Ajuste de Nómina -->
     <ModalBase v-if="modal" :title="modalTitle" big @close="modal = false" @save="guardar">
       <div class="row g-3">
         <div class="col-md-6">
@@ -278,6 +297,28 @@ onMounted(() => {
         <div class="col-12">
           <label class="form-label fw-semibold">Observaciones</label>
           <textarea class="form-control" v-model="form.observaciones" rows="2"></textarea>
+        </div>
+      </div>
+    </ModalBase>
+
+    <!-- Nuevo Modal para Registrar Pago de Nómina con Método y Referencia -->
+    <ModalBase v-if="pagoModal" title="Registrar pago de nómina" @close="pagoModal = false" @save="confirmarPago">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-semibold">Forma de pago *</label>
+          <select class="form-select" v-model="pagoForm.id_forma_pago">
+            <option v-for="fp in cat.formas_pago" :key="fp.id_forma_pago" :value="fp.id_forma_pago">
+              {{ fp.nombre ?? fp.descripcion ?? 'Forma ' + fp.id_forma_pago }}
+            </option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Referencia / Comprobante *</label>
+          <input type="text" class="form-control" v-model="pagoForm.referencia" placeholder="Ej. Folio SPEI o número de cheque" />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Observaciones</label>
+          <textarea class="form-control" v-model="pagoForm.observaciones" rows="2" placeholder="Notas adicionales del pago..."></textarea>
         </div>
       </div>
     </ModalBase>
