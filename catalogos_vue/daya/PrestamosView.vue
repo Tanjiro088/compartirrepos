@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { money } from '../helpers';
 import { useGlobalStore } from '../stores/store.js';
@@ -15,12 +15,17 @@ const toast = ref(null);
 
 const prestamos = ref([]);
 const empleados = ref([]);
-const cat = reactive({ usuarios: [], formas_pago: [] });
+const cat = reactive({ usuarios: [] });
 const loading = ref(false);
 const modal = ref(false);
 const form = reactive({});
 
-const headers = ['Folio', 'Empleado', 'Total', 'Pagado', 'Saldo', 'Estado', ''];
+const headers = ['Folio', 'Empleado', 'Total', 'Pagado', 'Saldo', 'Estado'];
+
+// Propiedad computada para filtrar únicamente empleados activos en el select
+const empleadosActivos = computed(() => {
+  return empleados.value.filter(e => e.activo);
+});
 
 const loadCat = async () => {
   try {
@@ -53,33 +58,29 @@ const load = async () => {
 
 const nuevo = () => {
   Object.keys(form).forEach((k) => delete form[k]);
-  Object.assign(form, { id_empleado: '', id_usuario: cat.usuarios[0]?.id_usuario || '', folio: 'PRES-' + Date.now(), monto_total: 0, tasa_interes: 0, plazo_meses: 6, fecha_inicio: '', fecha_vencimiento: '', motivo: '' });
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  Object.assign(form, { 
+    id_empleado: '', 
+    id_usuario: cat.usuarios[0]?.id_usuario || '', 
+    folio: 'PRES-' + Date.now(), 
+    monto_total: 0, 
+    tasa_interes: 0, 
+    plazo_meses: 6, 
+    fecha_inicio: fechaHoy, 
+    fecha_vencimiento: '', 
+    motivo: '' 
+  });
   modal.value = true;
 };
 
 const guardar = async () => {
   try {
     await axios.post(API_URL, form);
-    toast.value.notify('Préstamo registrado, cuota aplicada a nómina');
+    toast.value.notify('Préstamo registrado y cuota aplicada a nómina');
     modal.value = false;
     load();
   } catch (e) {
-    toast.value.apiErr(e);
-  }
-};
-
-// Registrar un pago descuenta del saldo pendiente (deuda).
-const pagar = async (p) => {
-  const m = prompt('Monto del pago (saldo ' + money(p.saldo_pendiente) + ')');
-  if (!m) return;
-  const idUsuario = cat.usuarios[0]?.id_usuario;
-  const idForma = cat.formas_pago[0]?.id_forma_pago;
-  try {
-    await axios.post(`${API_URL}/${p.id_prestamo}/pagar`, { monto: parseFloat(m), id_forma_pago: idForma, id_usuario: idUsuario, referencia: 'ABONO' });
-    toast.value.notify('Pago registrado, deuda descontada');
-    load();
-  } catch (e) {
-    toast.value.apiErr(e);
+    toast.value?.apiErr(e);
   }
 };
 
@@ -92,7 +93,7 @@ onMounted(() => {
 
 <template>
   <section class="container-fluid py-4">
-    <PageHeader title="Préstamos" subtitle="Al registrar un pago se descuenta de la deuda (saldo pendiente).">
+    <PageHeader title="Préstamos" subtitle="Al registrar un préstamo se descuenta automáticamente de las nóminas según el plazo pactado.">
       <template #action>
         <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-prestamo-btn">
           <i class="bi bi-plus-lg"></i> Registrar préstamo
@@ -112,13 +113,8 @@ onMounted(() => {
         <td class="align-middle">{{ p.empleado }}</td>
         <td class="align-middle">{{ money(p.monto_total) }}</td>
         <td class="align-middle text-muted">{{ money(p.monto_pagado) }}</td>
-        <td class="align-middle fw-bold">{{ money(p.saldo_pendiente) }}</td>
+        <td class="align-middle fw-bold text-danger">{{ money(p.saldo_pendiente) }}</td>
         <td class="align-middle"><StatusBadge :estado="p.estado" /></td>
-        <td class="align-middle text-end">
-          <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" :disabled="p.estado === 'pagado'" @click="pagar(p)">
-            <i class="bi bi-cash-coin"></i> Registrar pago
-          </button>
-        </td>
       </tr>
     </DataTable>
 
@@ -128,7 +124,9 @@ onMounted(() => {
           <label class="form-label fw-semibold">Empleado *</label>
           <select class="form-select" v-model="form.id_empleado" data-testid="prestamo-empleado">
             <option value="">—</option>
-            <option v-for="e in empleados" :key="e.id_empleado" :value="e.id_empleado">{{ e.persona }}</option>
+            <option v-for="e in empleadosActivos" :key="e.id_empleado" :value="e.id_empleado">
+              {{ e.persona.nombre }} {{ e.persona.apellido_paterno }} {{ e.persona.apellido_materno }}
+            </option>
           </select>
         </div>
         <div class="col-md-6">
