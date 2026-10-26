@@ -31,10 +31,18 @@ const estadosEmpleado = [
   { value: 'inactivo', label: 'Inactivo' },
 ];
 
-// El salario NO se captura: se hereda del salario base del puesto (regla de negocio).
-const salarioPreview = computed(() => {
-  const p = cat.puestos.find((x) => x.id_puesto == form.id_puesto);
-  return Number(p?.salario_base || 0);
+// Cálculo automático del salario mensual en base al tipo de pago seleccionado y el salario base
+const salarioMensualCalculado = computed(() => {
+  const base = Number(form.salario_base || 0);
+  const tipo = form.tipo_calculo_salario || 'quincenal';
+
+  if (tipo === 'diario') {
+    return base * 30; // 30 días al mes
+  } else if (tipo === 'semanal') {
+    return base * 4;  // 4 semanas al mes
+  } else {
+    return base * 2;  // Quincenal (2 quincenas al mes)
+  }
 });
 
 const empleadosFiltrados = computed(() => {
@@ -51,7 +59,7 @@ const loadCat = async () => {
   try {
     const { data } = await axios.get(`${global.baseUrl}catalogos`);
     console.log("Catálogos recibidos:", data);
-    
+
     if (data) {
       cat.personas = data.personas || [];
       cat.puestos = data.puestos || [];
@@ -82,19 +90,37 @@ const seed = (obj = {}) => {
 const nuevo = async () => {
   await loadCat();
   modalTitle.value = 'Nuevo empleado';
-  seed({ id_persona: '', id_puesto: '', id_sucursal: '', numero_empleado: '', fecha_contratacion: '', tipo_contrato: 'Tiempo completo', jornada: 'Matutina', banco: '', numero_cuenta: '', clabe: '' });
+  seed({ 
+    id_persona: '', 
+    id_puesto: '', 
+    id_sucursal: '', 
+    numero_empleado: '', 
+    fecha_contratacion: '', 
+    fecha_termino: '',
+    salario_base: '', 
+    tipo_calculo_salario: 'quincenal', 
+    tipo_contrato: 'Tiempo completo', 
+    jornada: 'Matutina' 
+  });
   modal.value = true;
 };
 
 const editar = async (e) => {
   await loadCat();
   modalTitle.value = 'Editar empleado';
-  seed({ ...e });
+  seed({ 
+    ...e, 
+    salario_base: e.salario_mensual, // Al editar por defecto cargamos el monto total como base asumiendo quincenal
+    tipo_calculo_salario: 'quincenal'
+  });
   modal.value = true;
 };
 
 const guardar = async () => {
   try {
+    // Inyectamos el valor calculado del salario mensual antes de enviarlo al backend
+    form.salario = salarioMensualCalculado.value;
+
     if (form.id_empleado) await axios.put(`${API_URL}/${form.id_empleado}`, form);
     else await axios.post(API_URL, form);
     toast.value.notify('Empleado guardado · nómina generada');
@@ -106,7 +132,6 @@ const guardar = async () => {
 };
 
 const eliminar = async (e) => {
-  const accion = e.activo ? 'desactivar' : 'activar';
   try {
     const { data } = await axios.delete(`${API_URL}/${e.id_empleado}`);
     toast.value.notify(data.message || 'Estado actualizado correctamente');
@@ -124,9 +149,10 @@ onMounted(() => {
 
 <template>
   <section class="container-fluid py-4">
-    <PageHeader title="Empleados" subtitle="Al alta se hereda el salario del puesto y se genera su nómina única.">
+    <PageHeader title="Empleados" subtitle="Asigna el salario base, calcula el mensual y genera su nómina única.">
       <template #action>
-        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo" data-testid="add-empleado-btn">
+        <button class="btn btn-primary d-inline-flex align-items-center gap-2" @click="nuevo"
+          data-testid="add-empleado-btn">
           <i class="bi bi-plus-lg"></i> Nuevo empleado
         </button>
       </template>
@@ -139,13 +165,8 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <TableToolbar
-        v-model:search="q"
-        v-model:estado="estadoFilter"
-        placeholder="Buscar por nombre, N° o puesto…"
-        :estados="estadosEmpleado"
-        id-prefix="empleados"
-      />
+      <TableToolbar v-model:search="q" v-model:estado="estadoFilter" placeholder="Buscar por nombre, N° o puesto…"
+        :estados="estadosEmpleado" id-prefix="empleados" />
       <DataTable :headers="headers" :empty="!empleadosFiltrados.length" empty-text="Sin empleados">
         <tr v-for="e in empleadosFiltrados" :key="e.id_empleado">
           <td class="align-middle fw-semibold">{{ e.numero_empleado }}</td>
@@ -160,12 +181,8 @@ onMounted(() => {
             <button class="btn btn-outline-secondary btn-sm me-1" @click="editar(e)">
               <i class="bi bi-pencil"></i>
             </button>
-            <button 
-              class="btn btn-sm" 
-              :class="e.activo ? 'btn-outline-danger' : 'btn-outline-success'" 
-              @click="eliminar(e)"
-              :title="e.activo ? 'Desactivar' : 'Activar'"
-            >
+            <button class="btn btn-sm" :class="e.activo ? 'btn-outline-danger' : 'btn-outline-success'"
+              @click="eliminar(e)" :title="e.activo ? 'Desactivar' : 'Activar'">
               <i :class="e.activo ? 'bi bi-slash-circle' : 'bi bi-check-lg'"></i>
             </button>
           </td>
@@ -180,7 +197,7 @@ onMounted(() => {
           <select class="form-select" v-model="form.id_persona" data-testid="empleado-persona">
             <option value="">—</option>
             <option v-for="p in cat.personas" :key="p.id_persona" :value="p.id_persona">
-              {{ p.nombre + ' ' + p.apellido_paterno + ' ' + p.apellido_materno }}
+              {{ [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ') }}
             </option>
           </select>
         </div>
@@ -193,10 +210,25 @@ onMounted(() => {
           </select>
         </div>
 
-        <div class="col-12">
-          <label class="form-label fw-semibold">Salario mensual (heredado del puesto)</label>
-          <input type="text" class="form-control" :value="money(salarioPreview)" disabled />
-          <div class="form-text">No se captura: se toma del salario base del puesto.</div>
+        <!-- TIPO DE CÁLCULO DE SALARIO Y SALARIO BASE -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tipo de pago / Salario base *</label>
+          <div class="input-group">
+            <select class="form-select" v-model="form.tipo_calculo_salario" style="max-width: 140px;">
+              <option value="quincenal">Quincenal</option>
+              <option value="semanal">Semanal</option>
+              <option value="diario">Diario</option>
+            </select>
+            <input type="number" step="0.01" min="0" class="form-control" v-model.number="form.salario_base" placeholder="Ej. 4250.00" />
+          </div>
+          <div class="form-text">Selecciona la frecuencia e ingresa el monto base.</div>
+        </div>
+
+        <!-- SALARIO MENSUAL CALCULADO -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Salario mensual (Calculado)</label>
+          <input type="text" class="form-control bg-light fw-bold text-success" :value="money(salarioMensualCalculado)" disabled />
+          <div class="form-text">Resultado total calculado para el mes.</div>
         </div>
 
         <div class="col-md-6">
@@ -218,6 +250,11 @@ onMounted(() => {
         </div>
 
         <div class="col-md-6">
+          <label class="form-label fw-semibold">Fecha término contrato</label>
+          <input type="date" class="form-control" v-model="form.fecha_termino" />
+        </div>
+
+        <div class="col-md-6">
           <label class="form-label fw-semibold">Tipo contrato</label>
           <select class="form-select" v-model="form.tipo_contrato">
             <option>Tiempo completo</option>
@@ -235,35 +272,6 @@ onMounted(() => {
             <option>Nocturna</option>
             <option>Mixta</option>
           </select>
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Banco</label>
-          <input type="text" class="form-control" v-model="form.banco" />
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">N° cuenta <small class="text-muted fw-normal">(Máx. 20 dígitos)</small></label>
-          <input 
-            type="text"
-            class="form-control"
-            v-model="form.numero_cuenta" 
-            maxlength="20" 
-            @input="form.numero_cuenta = form.numero_cuenta.replace(/\D/g, '')" 
-            placeholder="Ej. 0123456789" 
-          />
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">CLABE <small class="text-muted fw-normal">(Exactamente 18 dígitos)</small></label>
-          <input 
-            type="text"
-            class="form-control"
-            v-model="form.clabe" 
-            maxlength="18" 
-            @input="form.clabe = form.clabe.replace(/\D/g, '')" 
-            placeholder="18 dígitos interbancarios" 
-          />
         </div>
       </div>
     </ModalBase>
