@@ -1,7 +1,6 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
-import { money } from '../helpers';
 import { useGlobalStore } from '../stores/store.js';
 import PageHeader from '../components/PageHeader.vue';
 import DataTable from '../components/DataTable.vue';
@@ -23,7 +22,7 @@ const form = reactive({});
 const filtroBusqueda = ref('');
 const filtroActivo = ref('');
 
-const headers = ['Nombre', 'Nivel', 'Descripción', 'Salario base', 'Estado', ''];
+const headers = ['Nombre', 'Nivel', 'Descripción', 'Estado', ''];
 
 const load = async () => {
   loading.value = true;
@@ -48,7 +47,8 @@ const seed = (obj = {}) => {
 
 const nuevo = () => {
   modalTitle.value = 'Nuevo puesto';
-  seed({ nombre: '', descripcion: '', nivel: 'Operativo', salario_base: 0, activo: true });
+  // Por defecto se asigna activo en true para que al crearlo en la BD se guarde activo
+  seed({ nombre: '', descripcion: '', nivel: 'Operativo', activo: true });
   modal.value = true;
 };
 
@@ -73,7 +73,6 @@ const guardar = async () => {
 const cambiarEstado = async (p) => {
   try {
     const { data } = await axios.delete(`${API_URL}/${p.id_puesto}`);
-    // Actualizamos el estado localmente de inmediato para evitar desincronizaciones
     p.activo = data.activo;
     toast.value.notify(data.message);
     load();
@@ -87,7 +86,7 @@ onMounted(load);
 
 <template>
   <section class="container-fluid py-4">
-    <PageHeader title="Puestos" subtitle="Aquí defines el salario base que heredarán los empleados.">
+    <PageHeader title="Puestos" subtitle="Gestión de puestos de la empresa.">
       <template #action>
         <button class="btn btn-primary" @click="nuevo" data-testid="add-puesto-btn">
           <i class="bi bi-plus-lg me-1"></i>Nuevo puesto
@@ -128,7 +127,6 @@ onMounted(load);
         <td><strong>{{ p.nombre }}</strong></td>
         <td><span class="badge bg-info text-dark">{{ p.nivel }}</span></td>
         <td class="text-muted">{{ p.descripcion }}</td>
-        <td class="fw-semibold">{{ money(p.salario_base) }}</td>
         <td>
           <span :class="['badge', p.activo ? 'bg-success' : 'bg-secondary']">
             {{ p.activo ? 'Activo' : 'Inactivo' }}
@@ -158,7 +156,7 @@ onMounted(load);
           <label class="form-label">Descripción</label>
           <input class="form-control" v-model="form.descripcion" />
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12">
           <label class="form-label">Nivel</label>
           <select class="form-select" v-model="form.nivel">
             <option>Ejecutivo</option>
@@ -166,17 +164,6 @@ onMounted(load);
             <option>Supervisor</option>
             <option>Operativo</option>
             <option>Administrativo</option>
-          </select>
-        </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label">Salario base *</label>
-          <input type="number" step="0.01" class="form-control" v-model="form.salario_base" data-testid="puesto-salario" />
-        </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label">Activo</label>
-          <select class="form-select" v-model="form.activo">
-            <option :value="true">Sí</option>
-            <option :value="false">No</option>
           </select>
         </div>
       </div>
