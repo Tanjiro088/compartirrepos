@@ -38,6 +38,11 @@ export const obtenerProductosDisponibles = async () => {
   return Array.isArray(data) ? data : (data.data || [])
 }
 
+export const obtenerCatalogoCompras = async () => {
+  const { data } = await apiClient.get('productos-modulo/catalogo-compras')
+  return Array.isArray(data) ? data : (data.data || [])
+}
+
 export const calcularTotalesCompra = (detalles) => {
   const subtotal = detalles.reduce((sum, item) => sum + item.cantidad * item.precio, 0)
   const impuesto = subtotal * 0.16
