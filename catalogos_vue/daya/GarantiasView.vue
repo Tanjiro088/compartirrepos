@@ -14,7 +14,7 @@ const API_URL = `${global.baseUrl}garantias`;
 const toast = ref(null);
 
 const garantias = ref([]);
-const cat = reactive({ ventas: [], clientes: [], usuarios: [], presentaciones: [], almacenes: [] });
+const cat = reactive({ ventas: [], clientes: [], usuarios: [], productos: [], almacenes: [] });
 const loading = ref(false);
 const modal = ref(false);
 const form = reactive({});
@@ -64,12 +64,12 @@ const load = async () => {
 
 const nueva = () => {
   Object.keys(form).forEach((k) => delete form[k]);
-  Object.assign(form, { id_venta: '', id_cliente: '', id_usuario: cat.usuarios[0]?.id_usuario || '', folio: 'GAR-' + Date.now(), fecha_garantia: '', tipo_garantia: 'tienda', dias_garantia: 90, observaciones: '', d_presentacion: '', d_serie: '', d_diagnostico: '', d_solucion: '' });
+  Object.assign(form, { id_venta: '', id_cliente: '', id_usuario: cat.usuarios[0]?.id_usuario || '', folio: 'GAR-' + Date.now(), fecha_garantia: '', tipo_garantia: 'tienda', dias_garantia: 90, observaciones: '', d_producto: '', d_serie: '', d_diagnostico: '', d_solucion: '' });
   modal.value = true;
 };
 
 const guardar = async () => {
-  const payload = { ...form, detalles: [{ id_presentacion: form.d_presentacion, id_serie: form.d_serie || null, diagnostico: form.d_diagnostico, solucion: form.d_solucion }] };
+  const payload = { ...form, detalles: [{ id_producto: form.d_producto, id_serie: form.d_serie || null, diagnostico: form.d_diagnostico, solucion: form.d_solucion }] };
   try {
     await axios.post(API_URL, payload);
     toast.value.notify('Garantía registrada');
@@ -163,7 +163,7 @@ onMounted(() => {
           <label class="form-label fw-semibold">Cliente *</label>
           <select class="form-select" v-model="form.id_cliente">
             <option value="">—</option>
-            <option v-for="c in cat.clientes" :key="c.id_cliente" :value="c.id_cliente">{{ c.nombre }}</option>
+            <option v-for="c in cat.clientes" :key="c.id_cliente" :value="c.id_cliente">{{ c.nombre_comercial }}</option>
           </select>
         </div>
 
@@ -193,9 +193,9 @@ onMounted(() => {
 
         <div class="col-md-6">
           <label class="form-label fw-semibold">Producto *</label>
-          <select class="form-select" v-model="form.d_presentacion">
+          <select class="form-select" v-model="form.d_producto">
             <option value="">—</option>
-            <option v-for="p in cat.presentaciones" :key="p.id_presentacion" :value="p.id_presentacion">{{ p.nombre }}</option>
+            <option v-for="p in cat.productos" :key="p.id_producto" :value="p.id_producto">{{ p.nombre }}</option>
           </select>
         </div>
 
