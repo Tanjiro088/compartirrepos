@@ -14,7 +14,7 @@ const API_URL = `${global.baseUrl}combos`;
 const toast = ref(null);
 
 const combos = ref([]);
-const cat = reactive({ presentaciones: [] });
+const cat = reactive({ presentaciones: [], productos: [] });
 const loading = ref(false);
 const modal = ref(false);
 const form = reactive({});
@@ -22,13 +22,20 @@ const comboProductos = ref([]);
 
 const headers = ['Nombre', 'Precio normal', 'Precio combo', 'Ahorro', 'Estado', ''];
 
-// El precio normal se calcula sumando precio × cantidad de cada producto.
-const comboNormal = computed(() =>
-  comboProductos.value.reduce((s, it) => {
-    const p = cat.presentaciones.find((x) => x.id_presentacion == it.id_presentacion);
-    return s + Number(p?.precio || 0) * Number(it.cantidad || 0);
-  }, 0)
-);
+// El precio normal se calcula buscando la presentación que corresponde al id_producto seleccionado y multiplicando por precio_venta y cantidad.
+// El precio normal se calcula sumando precio_venta × cantidad de cada producto seleccionado en el combo.
+const comboNormal = computed(() => {
+  return comboProductos.value.reduce((s, it) => {
+    if (!it.id_producto) return s;
+    
+    // Buscamos el producto directamente en el catálogo general cat.productos
+    const prod = cat.productos.find((x) => x.id_producto == it.id_producto);
+    const precioVenta = Number(prod?.precio_venta || 0);
+    const cantidad = Number(it.cantidad || 0);
+    
+    return s + (precioVenta * cantidad);
+  }, 0);
+});
 
 const loadCat = async () => {
   try {
@@ -51,13 +58,13 @@ const load = async () => {
 };
 
 const nuevo = () => {
-  comboProductos.value = [{ id_presentacion: '', cantidad: 1 }];
+  comboProductos.value = [{ id_producto: '', cantidad: 1 }];
   Object.keys(form).forEach((k) => delete form[k]);
   Object.assign(form, { nombre: '', descripcion: '', precio_combo: 0 });
   modal.value = true;
 };
 
-const addItem = () => comboProductos.value.push({ id_presentacion: '', cantidad: 1 });
+const addItem = () => comboProductos.value.push({ id_producto: '', cantidad: 1 });
 const rmItem = (i) => comboProductos.value.splice(i, 1);
 
 const guardar = async () => {
@@ -139,10 +146,10 @@ onMounted(() => {
       <label class="form-label fw-semibold mt-4 d-block">Productos del combo</label>
       <div v-for="(it, i) in comboProductos" :key="i" class="row g-2 align-items-center mb-2">
         <div class="col-8">
-          <select class="form-select" v-model="it.id_presentacion">
-            <option value="">Producto…</option>
-            <option v-for="p in cat.presentaciones" :key="p.id_presentacion" :value="p.id_presentacion">
-              {{ p.nombre }} ({{ money(p.precio) }})
+          <select class="form-select" v-model="it.id_producto">
+            <option value="">Seleccione un producto…</option>
+            <option v-for="prod in cat.productos" :key="prod.id_producto" :value="prod.id_producto">
+              {{ prod.nombre }}
             </option>
           </select>
         </div>
