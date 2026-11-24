@@ -13,7 +13,7 @@ const API_URL = `${global.baseUrl}series`;
 const toast = ref(null);
 
 const series = ref([]);
-const cat = reactive({ presentaciones: [], almacenes: [] });
+const cat = reactive({ productos: [], almacenes: [] });
 const loading = ref(false);
 const modal = ref(false);
 const form = reactive({});
@@ -45,7 +45,7 @@ const load = async () => {
 
 const nueva = () => {
   Object.keys(form).forEach((k) => delete form[k]);
-  Object.assign(form, { id_presentacion: '', id_almacen: '', numero_serie: '', fecha_ingreso: '' });
+  Object.assign(form, { id_producto: '', id_almacen: '', numero_serie: '', fecha_ingreso: '' });
   modal.value = true;
 };
 
@@ -107,7 +107,7 @@ onMounted(() => {
         <div v-if="serieConsulta.garantias?.length" class="mt-3">
           <div class="text-muted small mb-2 fw-semibold">Garantías asociadas:</div>
           <div v-for="ga in serieConsulta.garantias" :key="ga.folio" class="text-muted small mb-1 d-flex align-items-center gap-2">
-            <span>• {{ ga.folio }} — {{ ga.diagnostico }}</span>
+            <span>{{ ga.folio }} — {{ ga.diagnostico }}</span>
             <StatusBadge :estado="ga.estado" />
           </div>
         </div>
@@ -134,9 +134,9 @@ onMounted(() => {
       <div class="row g-3">
         <div class="col-12">
           <label class="form-label fw-semibold">Producto *</label>
-          <select class="form-select" v-model="form.id_presentacion">
+          <select class="form-select" v-model="form.id_producto">
             <option value="">—</option>
-            <option v-for="p in cat.presentaciones" :key="p.id_presentacion" :value="p.id_presentacion">{{ p.nombre }}</option>
+            <option v-for="p in cat.productos" :key="p.id_producto" :value="p.id_producto">{{ p.nombre }}</option>
           </select>
         </div>
         <div class="col-12">
